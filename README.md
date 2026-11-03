@@ -2,35 +2,44 @@
 
 Aplicação web estática para inspeções multidisciplinares em obras.
 
-## Módulos
+## Setores
 - Auditoria Interna
 - Engenharia
 - Qualidade
 - Almoxarifado
 - SESMT
 
-Cada módulo contém 20 critérios iniciais, com classificação IM/OM, NA, PI e NI, observação, localização e seleção de evidências fotográficas.
+Cada setor possui 20 critérios iniciais (100 no total), com classificação IM/OM, NA, PI e NI, observação, localização e seleção de evidências fotográficas.
 
-## Cálculo de conformidade
+## Pontuação
 - IM/OM = 100 pontos
 - PI = 50 pontos
 - NI = 0 ponto
 - NA = excluído do denominador
 
-**Conformidade = soma dos pontos dos itens aplicáveis ÷ quantidade de itens aplicáveis.**
+Os critérios pendentes não entram no cálculo. A ordem do relatório é IM/OM → NA → PI → NI.
 
-A classificação NA não pontua e não reduz o percentual. Critérios ainda não avaliados não entram no cálculo; o relatório informa a quantidade pendente.
-
-## Executar
-Abra `index.html` em um navegador ou publique a raiz do repositório pelo GitHub Pages.
-
-## Relatórios e armazenamento — limitações da versão inicial
-O relatório é preparado para impressão/salvamento em PDF pelo navegador. Os rascunhos ficam no armazenamento local do navegador. Os nomes dos arquivos de evidência são listados no relatório, mas os arquivos não são enviados nem incorporados ao PDF nesta versão.
-
-Esta versão não oferece autenticação, controle de acesso, numeração global sequencial, sincronização entre usuários ou banco de dados. Esses recursos exigem backend, autenticação e armazenamento centralizado. Não utilize esta versão estática como repositório oficial de evidências sensíveis.
-
-## Referências
-As referências apresentadas em cada critério são orientativas. A aplicabilidade, edição vigente, requisitos legais locais e critérios de aceitação devem ser validados pelos responsáveis técnicos e pelo SESMT antes do uso operacional. Não substitui projetos, procedimentos internos, laudos ou avaliação profissional.
+## Estrutura
+```
+.github/workflows/   automações de validação e publicação
+app/                 documentação da arquitetura da aplicação
+www/
+  index.html         entrada da aplicação
+  css/               estilos
+  js/                lógica do navegador
+  manifest.webmanifest
+  sw.js              cache do shell para uso offline
+```
 
 ## Publicação
-Em **Settings → Pages**, selecionar a branch `main` e a pasta `/ (root)`, se o plano e as configurações do repositório permitirem a publicação de Pages em repositório privado.
+O workflow `Publicar Auditoria 360 no GitHub Pages` publica automaticamente o conteúdo de `www/` após push na branch `main`.
+
+No GitHub, acesse **Settings → Pages** e selecione **GitHub Actions** como fonte de publicação. A primeira execução também pode ser iniciada em **Actions → Publicar Auditoria 360 no GitHub Pages → Run workflow**.
+
+## Limitações desta fase
+- Rascunhos permanecem no armazenamento local do navegador.
+- As fotos selecionadas são listadas por nome no relatório, mas ainda não são incorporadas como imagem no PDF.
+- Não há autenticação, controle de acesso por setor, sincronização multiusuário, banco de dados ou numeração global sequencial.
+- O cache offline armazena os arquivos da interface; não representa sincronização nem backup centralizado dos dados.
+
+Não utilize a versão estática como repositório oficial de evidências sensíveis. As referências normativas dos critérios são orientativas e devem ser validadas pelos responsáveis técnicos antes do uso operacional.
