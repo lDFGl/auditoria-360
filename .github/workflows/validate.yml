@@ -1,0 +1,32 @@
+name: Validar código
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar JavaScript
+        run: |
+          node --check www/js/app.js
+          node --check www/sw.js
+      - name: Verificar arquivos essenciais
+        run: |
+          test -s www/index.html
+          test -s www/css/styles.css
+          test -s www/js/app.js
+          test -s www/manifest.webmanifest
