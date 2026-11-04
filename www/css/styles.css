@@ -14,3 +14,15 @@
 .brand-logo{display:block;width:104px;height:auto;max-height:48px;object-fit:contain}
 .brand-divider{width:1px;height:34px;background:#ffffff45;display:block}
 @media(max-width:520px){.brand-logo{width:82px;max-height:40px}.brand{gap:9px}.brand small{font-size:8px}}
+
+/* FG Moradia - vistoria de entrega */
+.moradia-area{margin:18px 0 24px}
+.moradia-area>h3{font:700 18px Manrope;color:var(--teal);margin:0 0 10px;padding:0 0 9px;border-bottom:1px solid var(--line)}
+.room-selector{margin-bottom:18px}
+.room-selector select,.status-field select{display:block;width:100%;margin-top:7px;border:1px solid #dce6e7;border-radius:8px;padding:10px 12px;background:#fcfdfd;color:var(--ink);font:12px 'DM Sans'}
+.room-selector{max-width:360px}
+.room-selector p{margin:9px 0 0;line-height:1.5}
+.moradia-question .question-top{align-items:center}
+.moradia-question .status-field{min-width:190px;max-width:220px}
+.moradia-question .question-details{grid-template-columns:1fr 1fr}
+@media(max-width:520px){.moradia-question .question-top{display:block}.moradia-question .status-field{max-width:none;margin-top:12px}.moradia-question .question-details{grid-template-columns:1fr}}
