@@ -146,7 +146,7 @@ async function openSector(id){
  if(state.sector.mode==="moradia"){
   $("#scoreValue").closest(".score-card").classList.add("hidden");renderMoradia(1);
  }else{
-  $("#scoreValue").closest(".score-card").classList.remove("hidden");
+  $("#scoreValue").closest(".score-card").classList.remove("hidden");$(".legend").classList.remove("hidden");
   $("#sectorCount").textContent="20 CRITÉRIOS DE VERIFICAÇÃO";
   $("#questionList").innerHTML=state.sector.items.map((q,i)=>'<article class="question" data-q="'+i+'"><div class="question-top"><div><span class="question-number">CRITÉRIO '+String(i+1).padStart(2,"0")+'</span><h4>'+esc(q[0])+'</h4><div class="reference">Referência: '+esc(q[1])+'</div></div><div class="rating" role="group" aria-label="Avaliação do critério '+(i+1)+'">'+[["IM/OM","im"],["NA","na"],["PI","pi"],["NI","ni"]].map(x=>'<button type="button" class="r-'+x[1]+'" data-rate="'+x[0]+'" aria-pressed="false">'+x[0]+'</button>').join("")+'</div></div><div class="question-details"><label>Observação / constatação<input data-field="obs" placeholder="Descreva a condição encontrada"></label><label>Evidências fotográficas<input data-field="foto" type="file" accept="image/*" multiple capture="environment"><small class="photo-help">Até 5 imagens por critério. Fotos salvas neste dispositivo.</small></label><div class="photo-gallery" aria-live="polite"></div></div></article>').join("");
   bindStandardCards();
@@ -183,6 +183,7 @@ function renderMoradia(n){
  $("#questionList").innerHTML=html;
  $("#roomCount").addEventListener("change",e=>{if(confirm("Alterar a quantidade de quartos? Os registros desta vistoria serão reiniciados.")){state.files={};renderMoradia(+e.target.value);}else e.target.value=String(state.roomCount);});
  document.querySelectorAll("[data-q]").forEach(bindPhotoInput);
+ document.querySelectorAll("[data-field=status]").forEach(sel=>sel.addEventListener("change",updateScore));
 }
 function updateScore(){
  if(state.sector?.mode==="moradia"){const total=state.sector.items.length,done=Array.from(document.querySelectorAll("[data-field=status]")).filter(x=>x.value).length;$("#scoreCaption").textContent=done+" de "+total+" itens registrados";$("#progressBar").style.width=(total?done/total*100:0)+"%";return;}
