@@ -13,9 +13,9 @@
 <main id="app" class="shell">
 <section id="homeView">
 <div class="hero"><div><span class="eyebrow">PLATAFORMA DE CAMPO</span><h1>Uma visão completa<br>da obra.</h1><p>Inspeções multidisciplinares com critérios padronizados, evidências e rastreabilidade.</p></div><div class="hero-orbit"><span>360°</span></div></div>
-<div class="section-heading"><div><span class="eyebrow">MÓDULOS DE INSPEÇÃO</span><h2>Selecione o setor</h2></div><span class="muted">05 áreas · 100 verificações</span></div>
+<div class="section-heading"><div><span class="eyebrow">MÓDULOS DE INSPEÇÃO</span><h2>Selecione o setor</h2></div><span class="muted">06 módulos de inspeção</span></div>
 <div id="sectorGrid" class="sector-grid"></div>
-<div class="notice"><b>Orientação:</b> cada setor possui checklist próprio. Registre a condição observada e as evidências fotográficas. A localização geral da inspeção pode ser informada na identificação. Itens NA não compõem o cálculo de conformidade.</div>
+<div class="notice"><b>Orientação:</b> cada setor possui roteiro próprio. Registre as condições observadas e as evidências fotográficas. O módulo FG Moradia é uma vistoria de entrega e não possui pontuação.</div>
 </section>
 <section id="inspectionView" class="hidden">
 <div class="toolbar"><button class="text-button" id="backHome">← Todos os setores</button><span class="muted" id="sectorCount"></span></div>
@@ -27,10 +27,11 @@
 <label>CNPJ / empresa<input name="empresa" placeholder="Empresa responsável"></label>
 <label>Data da inspeção<input name="data" type="date" required></label>
 <label>Responsável pela inspeção<input name="responsavel" required placeholder="Nome completo"></label>
+<label>Colaborador recebedor<input name="colaborador" placeholder="Nome do colaborador"></label>
 <label>Local / pavimento<input name="local" placeholder="Ex.: Torre A – 8º pavimento"></label>
 <label>Condição climática<input name="clima" placeholder="Opcional"></label>
 </div></div>
-<div class="checklist-toolbar"><div><h3>Checklist de verificação</h3><p>Selecione uma classificação para cada critério aplicável.</p></div><div class="legend"><span class="im">IM/OM</span><span class="na">NA</span><span class="pi">PI</span><span class="ni">NI</span></div></div>
+<div class="checklist-toolbar"><div><h3 id="checklistToolbarTitle">Checklist de verificação</h3><p id="checklistToolbarHelp">Selecione uma classificação para cada critério aplicável.</p></div><div class="legend"><span class="im">IM/OM</span><span class="na">NA</span><span class="pi">PI</span><span class="ni">NI</span></div></div>
 <div id="questionList" class="question-list"></div>
 <div class="form-panel"><div class="panel-title"><h3>Encerramento</h3><span>Registro geral</span></div><label>Considerações gerais<textarea name="consideracoes" rows="4" placeholder="Síntese da inspeção, pontos positivos e observações relevantes..."></textarea></label></div>
 <div class="action-bar"><button type="button" class="btn secondary" id="saveDraft">Salvar rascunho neste dispositivo</button><button type="submit" class="btn primary">Gerar relatório PDF ↗</button></div>
