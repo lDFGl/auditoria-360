@@ -30,3 +30,37 @@
 .gps-field{display:flex;flex-direction:column;align-items:flex-start;gap:7px}
 .gps-field .field-label{font-size:12px;font-weight:700;color:var(--ink)}
 .gps-field small{font-size:11px;color:var(--muted);line-height:1.45}
+
+/* Painel de indicadores locais */
+.dashboard{margin:42px 0 34px;padding:24px;background:#edf3f3;border:1px solid var(--line);border-radius:18px}
+.dashboard-heading{margin:0 0 20px;align-items:end;gap:20px}
+.dashboard-heading h2{margin:7px 0 5px}
+.dashboard-heading p{margin:0}
+.dashboard-filters{display:flex;gap:10px}
+.dashboard-filters label{min-width:175px;font-size:10px}
+.dashboard-filters select{display:block;width:100%;margin-top:6px;padding:10px;border:1px solid #dce6e7;border-radius:8px;background:#fff;color:var(--ink);font:12px 'DM Sans'}
+.dashboard-notice{padding:11px 14px;margin-bottom:14px;border-radius:8px;background:#fff;color:var(--muted);font-size:11px;line-height:1.5}
+.metric-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+.metric-card,.dashboard-panel{background:#fff;border:1px solid var(--line);border-radius:12px;padding:17px}
+.metric-card span,.metric-card small{display:block;color:var(--muted);font-size:10px}
+.metric-card strong{display:block;margin:8px 0;font:800 27px Manrope;color:var(--teal)}
+.dashboard-columns{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.dashboard-panel h3{font:700 14px Manrope;margin:0 0 16px}
+.bar-list{display:grid;gap:13px}
+.bar-row>div:first-child,.trend-item{display:flex;justify-content:space-between;gap:10px;font-size:10px;color:var(--muted);margin-bottom:6px}
+.bar-row b,.trend-item b{color:var(--ink)}
+.bar-track{height:8px;background:#edf1f2;border-radius:9px;overflow:hidden}
+.bar-track i{display:block;height:100%;background:#287b88;border-radius:9px}
+.rating-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
+.rating-stat{display:flex;align-items:center;justify-content:space-between;padding:10px;background:#f7f9f9;border-radius:8px}
+.rating-stat strong{font:700 20px Manrope}
+.rating-stat .legend{font-size:9px;padding:5px 7px}
+.trend-panel{margin-top:12px}
+.trend-list{display:grid;gap:10px}
+.trend-item{align-items:center;margin:0}
+.trend-item>span{width:65px;text-transform:capitalize}
+.trend-item .bar-track{flex:1}
+.dashboard-foot{display:flex;justify-content:space-between;align-items:center;margin-top:12px;color:var(--muted);font-size:10px}
+.dashboard-foot .text-button{font-size:10px}
+@media(max-width:800px){.metric-grid{grid-template-columns:repeat(2,1fr)}.dashboard-columns{grid-template-columns:1fr}}
+@media(max-width:520px){.dashboard{padding:15px;margin:28px 0}.dashboard-heading{display:block}.dashboard-filters{margin-top:14px;flex-direction:column}.dashboard-filters label{min-width:0}.metric-card{padding:12px}.metric-card strong{font-size:23px}.dashboard-foot{align-items:flex-start;gap:8px;flex-direction:column}}
