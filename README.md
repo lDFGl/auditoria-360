@@ -38,7 +38,7 @@ No GitHub, acesse **Settings → Pages** e selecione **GitHub Actions** como fon
 
 ## Limitações desta fase
 - Rascunhos permanecem no armazenamento local do navegador.
-- As fotos selecionadas são listadas por nome no relatório, mas ainda não são incorporadas como imagem no PDF.
+- Evidências fotográficas: até 5 imagens por critério, redimensionadas para reduzir o armazenamento, mantidas localmente no IndexedDB do navegador e incorporadas ao relatório para impressão/salvamento em PDF. Não há sincronização ou backup centralizado das fotos.
 - Não há autenticação, controle de acesso por setor, sincronização multiusuário, banco de dados ou numeração global sequencial.
 - O cache offline armazena os arquivos da interface; não representa sincronização nem backup centralizado dos dados.
 
