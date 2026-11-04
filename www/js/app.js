@@ -137,7 +137,7 @@ const moradiaAreas={
 };
 function buildMoradiaItems(n){
  const a=[];for(let r=1;r<=n;r++)moradiaAreas.Quarto.forEach(q=>a.push({area:"Quarto "+r,question:q}));
- ["Banheiro","Sala","Cozinha","Varanda","Móveis"].forEach(k=>moradiaAreas[k].forEach(q=>a.push({area:k,question:q})));return a;
+ ["Banheiro","Sala","Cozinha","Varanda","Móveis e eletrodomésticos"].forEach(k=>moradiaAreas[k].forEach(q=>a.push({area:k,question:q})));return a;
 }
 async function openSector(id){
  state.sector=sectors.find(s=>s.id===id);state.ratings={};state.files={};state.gps=null;$("#gpsStatus").textContent="Localização opcional. Será exibido apenas o link para o mapa no relatório.";$("#captureGps").textContent="Registrar localização por GPS";
