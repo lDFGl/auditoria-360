@@ -26,3 +26,7 @@
 .moradia-question .status-field{min-width:190px;max-width:220px}
 .moradia-question .question-details{grid-template-columns:1fr 1fr}
 @media(max-width:520px){.moradia-question .question-top{display:block}.moradia-question .status-field{max-width:none;margin-top:12px}.moradia-question .question-details{grid-template-columns:1fr}}
+
+.gps-field{display:flex;flex-direction:column;align-items:flex-start;gap:7px}
+.gps-field .field-label{font-size:12px;font-weight:700;color:var(--ink)}
+.gps-field small{font-size:11px;color:var(--muted);line-height:1.45}
