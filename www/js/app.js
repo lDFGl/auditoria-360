@@ -126,7 +126,7 @@ function renderHome(){
  $("#sectorGrid").innerHTML=sectors.map(s=>`<button class="sector-card" data-sector="${s.id}"><div class="sector-icon">${s.icon}</div><h3>${s.name}</h3><p>${s.desc}</p><div class="card-foot"><span>20 VERIFICAÇÕES</span><span>ACESSAR →</span></div></button>`).join("");
  document.querySelectorAll("[data-sector]").forEach(b=>b.addEventListener("click",()=>openSector(b.dataset.sector)));
 }
-function openSector(id){
+async function openSector(id){
  state.sector=sectors.find(s=>s.id===id);state.ratings={};state.files={};
  $("#homeView").classList.add("hidden");$("#inspectionView").classList.remove("hidden");
  $("#sectorTitle").textContent=state.sector.name;$("#sectorDescription").textContent=state.sector.desc;$("#sectorCount").textContent="20 CRITÉRIOS DE VERIFICAÇÃO";
