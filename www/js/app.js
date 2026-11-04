@@ -160,6 +160,7 @@ async function openSector(id){
   $("#questionList").innerHTML=state.sector.items.map((q,i)=>'<article class="question" data-q="'+i+'"><div class="question-top"><div><span class="question-number">CRITÉRIO '+String(i+1).padStart(2,"0")+'</span><h4>'+esc(q[0])+'</h4><div class="reference">Referência: '+esc(q[1])+'</div></div><div class="rating" role="group" aria-label="Avaliação do critério '+(i+1)+'">'+[["IM/OM","im"],["NA","na"],["PI","pi"],["NI","ni"]].map(x=>'<button type="button" class="r-'+x[1]+'" data-rate="'+x[0]+'" aria-pressed="false">'+x[0]+'</button>').join("")+'</div></div><div class="question-details"><label>Observação / constatação<input data-field="obs" placeholder="Descreva a condição encontrada"></label><label>Evidências fotográficas<input data-field="foto" type="file" accept="image/*" multiple capture="environment"><small class="photo-help">Até 5 imagens por critério. Fotos salvas neste dispositivo.</small></label><div class="photo-gallery" aria-live="polite"></div></div></article>').join("");
   bindStandardCards();
  }
+ if(!resume){try{await clearSectorPhotos(id);}catch(err){}if(savedDraft)localStorage.removeItem(DRAFT_PREFIX+id);}
  try{state.files=await readSectorPhotos(id);}catch(err){state.files={};}
  if(resume){
   const form=$("#inspectionForm");Object.entries(savedDraft.form||{}).forEach(([name,value])=>{const field=form.elements.namedItem(name);if(field&&typeof value==="string")field.value=value;});
