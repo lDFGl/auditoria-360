@@ -1,23 +1,34 @@
 # Auditoria 360 — Inspeção Integrada de Obras
 
-Aplicação web estática para inspeções multidisciplinares em obras.
+Aplicação web estática para apoio a inspeções multidisciplinares em obras, publicada pelo GitHub Pages.
 
-## Setores
+## Módulos
 - Auditoria Interna
 - Engenharia
 - Qualidade
 - Almoxarifado
 - SESMT
+- FG Moradia
 
-Cada setor possui 20 critérios iniciais (100 no total), com classificação IM/OM, NA, PI e NI, observação, localização e seleção de evidências fotográficas.
+Os cinco módulos de verificação utilizam 20 critérios iniciais, com classificação IM/OM, NA, PI e NI. O FG Moradia possui checklist de entrega por ambiente, quantidade configurável de quartos e inventário de móveis e eletrodomésticos, sem cálculo de pontuação.
 
 ## Pontuação
 - IM/OM = 100 pontos
 - PI = 50 pontos
 - NI = 0 ponto
 - NA = excluído do denominador
+- Critérios pendentes não entram no cálculo; são apresentados separadamente.
+- A ordem do relatório é IM/OM → NA → PI → NI.
 
-Os critérios pendentes não entram no cálculo. A ordem do relatório é IM/OM → NA → PI → NI.
+## Recursos desta versão
+- Identificador individual da inspeção nos relatórios.
+- Salvamento e recuperação de rascunhos por módulo no navegador, incluindo dados gerais, classificações, observações, estados do FG Moradia, quantidade de quartos e localização registrada.
+- Evidências fotográficas redimensionadas (lado máximo de 1.600 px, JPEG 0,82) e armazenadas no IndexedDB do dispositivo.
+- Recuperação das fotos junto ao rascunho, desde que os dados locais do navegador não tenham sido apagados.
+- No FG Moradia, o colaborador recebedor é obrigatório para emissão do relatório.
+- Ao alterar a quantidade de quartos, o sistema solicita confirmação e reinicia os registros e as fotos da vistoria para evitar associação incorreta de evidências.
+- Relatório preparado para impressão ou salvamento em PDF pelo navegador.
+- Cache dos arquivos da interface para acesso offline limitado.
 
 ## Estrutura
 ```
@@ -26,16 +37,18 @@ app/                 documentação da arquitetura da aplicação
 www/
   index.html         entrada da aplicação
   css/               estilos
-  js/                lógica do navegador
+  js/app.js          lógica do navegador
+  logo-fg.png        identidade visual
   manifest.webmanifest
   sw.js              cache do shell para uso offline
 ```
 
+## Limitações e proteção das informações
+- Rascunhos, identificadores e metadados ficam no armazenamento local do navegador; as fotos ficam no IndexedDB do mesmo dispositivo.
+- Não há sincronização entre dispositivos, banco de dados centralizado, autenticação, perfis de acesso, trilha de auditoria imutável ou backup corporativo.
+- Limpar os dados do navegador, trocar de dispositivo ou usar navegação privada pode eliminar os rascunhos e as evidências.
+- O identificador gerado é local e não constitui numeração global sequencial nem prova de autenticidade.
+- O cache offline armazena apenas os arquivos da interface; não representa sincronização ou backup dos dados.
+- Não utilizar esta versão estática como repositório oficial de evidências sensíveis ou dados pessoais. Para uso corporativo oficial, será necessária avaliação e aprovação de arquitetura, segurança da informação, privacidade, governança e infraestrutura.
 
-## Limitações desta fase
-- Rascunhos permanecem no armazenamento local do navegador.
-- Evidências fotográficas: até 5 imagens por critério, redimensionadas para reduzir o armazenamento, mantidas localmente no IndexedDB do navegador e incorporadas ao relatório para impressão/salvamento em PDF. Não há sincronização ou backup centralizado das fotos.
-- Não há autenticação, controle de acesso por setor, sincronização multiusuário, banco de dados ou numeração global sequencial.
-- O cache offline armazena os arquivos da interface; não representa sincronização nem backup centralizado dos dados.
-
-Não utilize a versão estática como repositório oficial de evidências sensíveis. As referências normativas dos critérios são orientativas e devem ser validadas pelos responsáveis técnicos antes do uso operacional.
+As referências normativas dos critérios são orientativas e devem ser validadas pelos responsáveis técnicos antes do uso operacional.
