@@ -52,3 +52,15 @@ www/
 - Não utilizar esta versão estática como repositório oficial de evidências sensíveis ou dados pessoais. Para uso corporativo oficial, será necessária avaliação e aprovação de arquitetura, segurança da informação, privacidade, governança e infraestrutura.
 
 As referências normativas dos critérios são orientativas e devem ser validadas pelos responsáveis técnicos antes do uso operacional.
+
+
+## Painel de indicadores (versão GitHub Pages)
+O painel inicial apresenta indicadores calculados a partir do histórico de relatórios gerados neste navegador:
+- total de inspeções concluídas;
+- conformidade média dos cinco módulos pontuados (IM/OM = 100, PI = 50, NI = 0; NA fora do denominador);
+- quantidade de NI e pendências;
+- distribuição IM/OM, NA, PI e NI;
+- inspeções por módulo e por mês;
+- filtros por módulo e período (todo o histórico, 30 dias, 90 dias ou 12 meses).
+
+As vistorias FG Moradia são contabilizadas separadamente e não entram na conformidade média. O histórico registra um resumo ao gerar o relatório, limitado aos 500 registros mais recentes, sem armazenar cópias das fotos no painel. Os dados permanecem no navegador/dispositivo e podem ser apagados pelo próprio painel; não há consolidação corporativa, sincronização ou backup central.
