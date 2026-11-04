@@ -31,10 +31,6 @@ www/
   sw.js              cache do shell para uso offline
 ```
 
-## Publicação
-O workflow `Publicar Auditoria 360 no GitHub Pages` publica automaticamente o conteúdo de `www/` após push na branch `main`.
-
-No GitHub, acesse **Settings → Pages** e selecione **GitHub Actions** como fonte de publicação. A primeira execução também pode ser iniciada em **Actions → Publicar Auditoria 360 no GitHub Pages → Run workflow**.
 
 ## Limitações desta fase
 - Rascunhos permanecem no armazenamento local do navegador.
