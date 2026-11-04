@@ -1,4 +1,4 @@
-const CACHE_NAME = "auditoria360-v8";
+const CACHE_NAME = "auditoria360-v9";
 const APP_SHELL = [
   "./",
   "./index.html",
