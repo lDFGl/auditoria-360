@@ -59,3 +59,13 @@ test("FG Moradia preserva dados gerais e só reinicia checklist e evidências",(
  assert.match(app,/state\.files=\{\};state\.ratings=\{\};state\.inspectionId=newInspectionId\(\)/);
  assert.doesNotMatch(app,/catch\(err\)\{\}state\.files=\{\};state\.ratings=\{\}/);
 });
+
+test("evidências oferecem seleção de arquivo e captura direta pela câmera",()=>{
+ assert.equal((app.match(/data-photo-action="file"/g)||[]).length,2);
+ assert.equal((app.match(/data-photo-action="camera"/g)||[]).length,2);
+ assert.equal((app.match(/data-field="foto-camera" type="file" accept="image\\/\\*" multiple capture="environment" hidden/g)||[]).length,2);
+ assert.match(app,/card\.querySelectorAll\("\[data-photo-action\]"\)/);
+ assert.match(app,/input\.click\(\)/);
+ assert.match(app,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
+ assert.match(css,/\.photo-controls\{display:grid;grid-template-columns:1fr 1fr/);
+});
