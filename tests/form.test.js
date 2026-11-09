@@ -40,7 +40,7 @@ test("cores institucionais exatas das classificações",()=>{
 });
 
 test("relatório aplica pontuação ponderada e exibe duas casas decimais",()=>{
- assert.match(app,/scoreResult\\.pointsTotal\\.toFixed\\(2\\)/);
- assert.match(app,/score\\.toFixed\\(2\\)/);
- assert.match(app,/const points=im\\+om\\+\\(pi\\*0\\.65\\)/);
+ assert.ok(app.includes("scoreResult.pointsTotal.toFixed(2)"));
+ assert.ok(app.includes("score.toFixed(2)"));
+ assert.ok(app.includes("const points=im+om+(pi*0.65)"));
 });
