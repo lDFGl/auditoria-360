@@ -159,6 +159,8 @@ function renderDashboard(){
  $("#dashboardUpdated").textContent=history.length?"Último registro local: "+new Date(history[0].completedAt||history[0].savedAt).toLocaleString("pt-BR")+". Histórico limitado aos 500 registros mais recentes.":"Os indicadores serão atualizados ao gerar relatórios.";
 }
 function renderHome(){
+ const collaboratorInput=$('input[name="colaborador"]');
+ if(collaboratorInput){collaboratorInput.required=false;collaboratorInput.disabled=true;}
  $("#homeView").classList.remove("hidden");$("#inspectionView").classList.add("hidden");
  $("#sectorGrid").innerHTML=sectors.map(s=>'<button class="sector-card" data-sector="'+s.id+'"><div class="sector-icon">'+s.icon+'</div><h3>'+s.name+'</h3><p>'+s.desc+'</p><div class="card-foot"><span>'+(s.mode==="moradia"?"VISTORIA DE ENTREGA":s.items.length+" VERIFICAÇÕES")+'</span><span>ACESSAR →</span></div></button>').join("");
  document.querySelectorAll("[data-sector]").forEach(b=>b.addEventListener("click",()=>openSector(b.dataset.sector)));
@@ -184,7 +186,11 @@ async function openSector(id){
  $("#gpsStatus").textContent="Localização opcional. Será exibido apenas o link para o mapa no relatório.";$("#captureGps").textContent="Registrar localização por GPS";
  $("#homeView").classList.add("hidden");$("#inspectionView").classList.remove("hidden");
  $("#sectorTitle").textContent=state.sector.name;$("#sectorDescription").textContent=state.sector.desc;
- if(state.sector.mode==="moradia"){
+ const collaboratorInput=$('input[name="colaborador"]');
+ const isMoradia=state.sector.mode==="moradia";
+ collaboratorInput.disabled=!isMoradia;
+ collaboratorInput.required=isMoradia;
+ if(isMoradia){
   $("#collaboratorField").classList.remove("hidden");
   $("#scoreValue").closest(".score-card").classList.add("hidden");renderMoradia(resume?Math.max(1,Math.min(4,Number(savedDraft.roomCount)||1)):1);
  }else{
@@ -282,5 +288,5 @@ $("#captureGps").addEventListener("click",()=>{
 $("#inspectionForm").addEventListener("submit",async e=>{e.preventDefault();if(!$("#inspectionForm").reportValidity())return;if(state.sector.mode==="moradia"){if(!formData().colaborador?.trim()){alert("Informe o colaborador recebedor para concluir a vistoria FG Moradia.");$('input[name="colaborador"]').focus();return;}const pending=Array.from(document.querySelectorAll("[data-field=status]")).filter(x=>!x.value).length;if(pending&&!confirm("Existem "+pending+" itens sem condição registrada. Deseja gerar o relatório mesmo assim?"))return;}else if(Object.keys(state.ratings).length!==state.sector.items.length){if(!confirm("Existem critérios sem classificação. Deseja gerar o relatório mesmo assim?"))return;}try{const html=await reportHtml(formData());await showReportInPage(html);const saved=saveInspectionHistory();if(saved){renderDashboard();$("#dashboardUpdated").textContent="Inspeção registrada em "+new Date().toLocaleString("pt-BR")+". Histórico local confirmado."; }else{$("#dashboardUpdated").textContent="Não foi possível confirmar a gravação do histórico neste navegador.";alert("O relatório foi preparado, mas o histórico não pôde ser gravado. Verifique o armazenamento do navegador.");} }catch(err){console.error("Falha ao preparar relatório:",err);alert("Não foi possível preparar o relatório: "+(err?.message||err));}});
 $("#saveDraft").addEventListener("click",()=>{const items=Array.from(document.querySelectorAll("[data-q]")).map(card=>({obs:card.querySelector('[data-field="obs"]')?.value||"",status:card.querySelector('[data-field="status"]')?.value||""}));const data={version:3,sector:state.sector.id,inspectionId:state.inspectionId,roomCount:state.roomCount,ratings:state.ratings,items,form:formData(),gps:state.gps,savedAt:new Date().toISOString()};try{localStorage.setItem(DRAFT_PREFIX+state.inspectionId,JSON.stringify(data));saveDraftIndex(data);alert("Rascunho salvo neste dispositivo. As fotos permanecem vinculadas a esta inspeção.");}catch(e){alert("Não foi possível salvar o rascunho neste navegador.");}});
 $("#dashboardModule").addEventListener("change",renderDashboard);$("#dashboardPeriod").addEventListener("change",renderDashboard);
-$("#reportPrint").addEventListener("click",()=>{window.print();});$("#reportClose").addEventListener("click",closeReportViewer);$("#clearDashboard").addEventListener("click",()=>{if(confirm("Excluir todo o histórico de indicadores salvo neste navegador? Essa ação não poderá ser desfeita.")){localStorage.removeItem(HISTORY_KEY);renderDashboard();}});window.addEventListener("storage",e=>{if(e.key===HISTORY_KEY)renderDashboard();});
+$("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAssets($("#reportContent"));}catch(err){console.warn("Não foi possível aguardar todos os recursos do relatório:",err);}requestAnimationFrame(()=>window.print());});$("#reportClose").addEventListener("click",closeReportViewer);$("#clearDashboard").addEventListener("click",()=>{if(confirm("Excluir todo o histórico de indicadores salvo neste navegador? Essa ação não poderá ser desfeita.")){localStorage.removeItem(HISTORY_KEY);renderDashboard();}});window.addEventListener("storage",e=>{if(e.key===HISTORY_KEY)renderDashboard();});
 $("#backHome").addEventListener("click",renderHome);$("#homeLink").addEventListener("click",e=>{e.preventDefault();renderHome()});migrateLegacyDrafts();migrateLegacyPhotos();requestStoragePersistence();renderHome();
