@@ -176,10 +176,11 @@ function buildMoradiaItems(n){
  const a=[];for(let r=1;r<=n;r++)moradiaAreas.Quarto.forEach(q=>a.push({area:"Quarto "+r,question:q}));
  ["Banheiro","Sala","Cozinha","Varanda","Móveis e eletrodomésticos"].forEach(k=>moradiaAreas[k].forEach(q=>a.push({area:k,question:q})));return a;
 }
+function chooseInspectionDraft(sectorId){const drafts=listDrafts(sectorId);if(!drafts.length)return Promise.resolve({mode:"new"});return new Promise(resolve=>{const dlg=$("#draftDialog"),list=dlg.querySelector("#draftOptions");list.innerHTML=drafts.map(d=>'<div class="draft-option"><div><b>'+esc(d.form?.obra||"Obra não informada")+'</b><small>Data: '+esc(d.form?.data||"—")+' · Salvo: '+esc(new Date(d.savedAt||Date.now()).toLocaleString("pt-BR"))+'</small></div><div class="draft-actions"><button type="button" data-choice="continue" data-id="'+esc(d.inspectionId)+'">Continuar</button><button type="button" data-choice="discard" data-id="'+esc(d.inspectionId)+'">Descartar</button></div></div>').join("");const finish=v=>{dlg.close();resolve(v);};dlg.querySelector("#newInspection").onclick=()=>finish({mode:"new"});dlg.querySelector("#cancelDrafts").onclick=()=>finish({cancelled:true});dlg.oncancel=e=>{e.preventDefault();finish({cancelled:true});};list.querySelectorAll("[data-choice]").forEach(b=>b.onclick=async()=>{const d=drafts.find(x=>x.inspectionId===b.dataset.id);if(b.dataset.choice==="discard"){if(!confirm("Descartar definitivamente este rascunho e suas fotos?"))return;try{localStorage.removeItem(DRAFT_PREFIX+d.inspectionId);await clearSectorPhotos(d.inspectionId);}catch(e){alert("Não foi possível descartar; os dados foram preservados.");return;}finish({mode:"new"});}else finish({mode:"continue",draft:d});});dlg.showModal();});}
 async function openSector(id){
  state.sector=sectors.find(s=>s.id===id);state.ratings={};state.files={};state.gps=null;state.roomCount=1;
- const savedDraft=getDraft(id),resume=!!(savedDraft&&confirm("Foi encontrado um rascunho salvo em "+new Date(savedDraft.savedAt||Date.now()).toLocaleString("pt-BR")+". Deseja continuar de onde parou?\\n\\nEscolha Cancelar para iniciar uma nova inspeção."));
- state.inspectionId=resume?(savedDraft.inspectionId||newInspectionId()):newInspectionId();
+ const choice=await chooseInspectionDraft(id);if(choice.cancelled)return;const savedDraft=choice.draft,resume=choice.mode==="continue";
+ state.inspectionId=resume?savedDraft.inspectionId:newInspectionId();
  $("#gpsStatus").textContent="Localização opcional. Será exibido apenas o link para o mapa no relatório.";$("#captureGps").textContent="Registrar localização por GPS";
  $("#homeView").classList.add("hidden");$("#inspectionView").classList.remove("hidden");
  $("#sectorTitle").textContent=state.sector.name;$("#sectorDescription").textContent=state.sector.desc;
@@ -189,12 +190,11 @@ async function openSector(id){
  }else{
   $("#collaboratorField").classList.add("hidden");
   $("#scoreValue").closest(".score-card").classList.remove("hidden");$(".legend").classList.remove("hidden");
-  $("#sectorCount").textContent="20 CRITÉRIOS DE VERIFICAÇÃO";
+  $("#sectorCount").textContent=state.sector.items.length+" CRITÉRIOS DE VERIFICAÇÃO";
   $("#questionList").innerHTML=state.sector.items.map((q,i)=>'<article class="question" data-q="'+i+'"><div class="question-top"><div><span class="question-number">CRITÉRIO '+String(i+1).padStart(2,"0")+'</span><h4>'+esc(q[0])+'</h4><div class="reference">Referência: '+esc(q[1])+'</div></div><div class="rating" role="group" aria-label="Avaliação do critério '+(i+1)+'">'+[["IM/OM","im"],["NA","na"],["PI","pi"],["NI","ni"]].map(x=>'<button type="button" class="r-'+x[1]+'" data-rate="'+x[0]+'" aria-pressed="false">'+x[0]+'</button>').join("")+'</div></div><div class="question-details"><label>Observação / constatação<input data-field="obs" placeholder="Descreva a condição encontrada"></label><label>Evidências fotográficas<input data-field="foto" type="file" accept="image/*" multiple capture="environment"><small class="photo-help">Até 5 imagens por critério. Fotos salvas neste dispositivo.</small></label><div class="photo-gallery" aria-live="polite"></div></div></article>').join("");
   bindStandardCards();
  }
- if(!resume){try{await clearSectorPhotos(id);}catch(err){}if(savedDraft)localStorage.removeItem(DRAFT_PREFIX+id);}
- try{state.files=await readSectorPhotos(id);}catch(err){state.files={};}
+ if(resume){try{state.files=await readInspectionPhotos(state.inspectionId);}catch(err){state.files={};}}
  if(resume){
   const form=$("#inspectionForm");Object.entries(savedDraft.form||{}).forEach(([name,value])=>{const field=form.elements.namedItem(name);if(field&&typeof value==="string")field.value=value;});
   state.inspectionId=savedDraft.inspectionId||state.inspectionId;state.gps=savedDraft.gps||null;state.ratings=savedDraft.ratings||{};
@@ -230,7 +230,7 @@ function renderMoradia(n){
   });html+='</section>';
  });
  $("#questionList").innerHTML=html;
- $("#roomCount").addEventListener("change",async e=>{if(confirm("Alterar a quantidade de quartos? Os registros e fotos desta vistoria serão reiniciados para evitar associação incorreta de evidências.")){try{await clearSectorPhotos(state.sector.id);}catch(err){}state.files={};state.ratings={};state.inspectionId=newInspectionId();$("#inspectionForm").reset();renderMoradia(+e.target.value);updateScore();}else e.target.value=String(state.roomCount);});
+ $("#roomCount").addEventListener("change",async e=>{if(confirm("Alterar a quantidade de quartos? Os registros e fotos desta vistoria serão reiniciados para evitar associação incorreta de evidências.")){try{await clearSectorPhotos(state.inspectionId);}catch(err){}state.files={};state.ratings={};state.inspectionId=newInspectionId();$("#inspectionForm").reset();renderMoradia(+e.target.value);updateScore();}else e.target.value=String(state.roomCount);});
  document.querySelectorAll("[data-q]").forEach(bindPhotoInput);
  document.querySelectorAll("[data-field=status]").forEach(sel=>sel.addEventListener("change",updateScore));
 }
