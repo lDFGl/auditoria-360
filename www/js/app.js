@@ -258,14 +258,15 @@ function updateScore(){
  const result=AuditoriaScore.calculateScore(state.ratings,state.sector.items.length),done=result.evaluated+result.counts.na,total=state.sector.items.length;
  $("#scoreValue").textContent=result.score===null?"—":result.score.toFixed(2).replace(".",",")+"%";const coverage=AuditoriaScore.calculateCoverage(state.ratings,total);$("#scoreCaption").textContent=coverage.evaluated+" de "+coverage.applicable+" aplicáveis · "+(coverage.coverage===null?"—":coverage.coverage.toFixed(2).replace(".",",")+"% de cobertura");$("#progressBar").style.width=(coverage.applicable?coverage.evaluated/coverage.applicable*100:0)+"%";
 }
-const APP_VERSION="2.2.0";
+const APP_VERSION="2.3.0";
 function canonicalize(value){if(Array.isArray(value))return"["+value.map(canonicalize).join(",")+"]";if(value&&typeof value==="object")return"{"+Object.keys(value).sort().map(k=>JSON.stringify(k)+":"+canonicalize(value[k])).join(",")+"}";return JSON.stringify(value);}
 async function hashValue(value){const bytes=new TextEncoder().encode(typeof value==="string"?value:canonicalize(value));const digest=await window.crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");}
 async function buildIntegrity(data){const generatedAt=new Date().toISOString();if(!window.crypto?.subtle)return{generatedAt,hash:null,version:APP_VERSION};try{const photoHashes={};for(const [i,list] of Object.entries(state.files)){photoHashes[i]=[];for(const p of list||[])photoHashes[i].push({name:p.name,sha256:await hashValue(p.dataUrl)});}const payload={inspectionId:state.inspectionId,sector:state.sector.id,form:data,ratings:state.ratings,items:Array.from(document.querySelectorAll("[data-q]")).map(card=>({index:card.dataset.q,observation:card.querySelector('[data-field="obs"]')?.value||"",status:card.querySelector('[data-field="status"]')?.value||""})),actionPlans:state.actionPlans,gps:state.gps,photoHashes,generatedAt,version:APP_VERSION};return{generatedAt,hash:await hashValue(payload),version:APP_VERSION};}catch(e){return{generatedAt,hash:null,version:APP_VERSION};}}
 function integrityFooterMarkup(){const x=state.reportIntegrity||{};return '<section style="margin-top:28px;padding-top:10px;border-top:1px solid #ccd6d8;font:9px Arial;overflow-wrap:anywhere"><b>Integridade do relatório</b><br>Gerado em: '+esc(x.generatedAt||"—")+'<br>Versão: '+esc(x.version||APP_VERSION)+' · ID: '+esc(state.inspectionId)+'<br>SHA-256: '+esc(x.hash||"Hash indisponível neste navegador")+'</section>';}
 function formData(){const f=new FormData($("#inspectionForm"));return Object.fromEntries(f.entries())}
 async function waitForReportAssets(container,timeoutMs=10000){const images=Array.from(container.querySelectorAll("img"));await Promise.all(images.map(img=>new Promise(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;resolve();};const timer=setTimeout(finish,timeoutMs);if(typeof img.decode==="function"){img.decode().catch(()=>{}).finally(()=>{clearTimeout(timer);finish();});}else if(img.complete){clearTimeout(timer);finish();}else{img.addEventListener("load",()=>{clearTimeout(timer);finish();},{once:true});img.addEventListener("error",()=>{clearTimeout(timer);finish();},{once:true});}})));if(document.fonts?.ready)await Promise.race([document.fonts.ready.catch(()=>{}),new Promise(resolve=>setTimeout(resolve,timeoutMs))]);}
-async function showReportInPage(html){const parsed=new DOMParser().parseFromString(html,"text/html"),viewer=$("#reportViewer"),content=$("#reportContent");const oldStyle=$("#generatedReportStyle");if(oldStyle)oldStyle.remove();const reportCss=Array.from(parsed.head.querySelectorAll("style")).map(x=>x.textContent).join("\n").replace(/\bbody(?=\s*[{.#[:])/g,"#reportContent");const style=document.createElement("style");style.id="generatedReportStyle";style.textContent=reportCss;document.head.appendChild(style);content.innerHTML=parsed.body.innerHTML;content.querySelector(".report-toolbar")?.remove();viewer.hidden=false;viewer.setAttribute("aria-hidden","false");$("#reportPrint").focus();await waitForReportAssets(content);content.scrollTop=0;viewer.scrollTop=0;}
+async function showReportInPage(html){const parsed=new DOMParser().parseFromString(html,"text/html"),viewer=$("#reportViewer"),content=$("#reportContent");const oldStyle=$("#generatedReportStyle");if(oldStyle)oldStyle.remove();const reportCss=Array.from(parsed.head.querySelectorAll("style")).map(x=>x.textContent).join("\n").replace(/\bbody(?=\s*[{.#[:])/g,"#reportContent");const style=document.createElement("style");style.id="generatedReportStyle";style.textContent=reportCss;document.head.appendChild(style);content.innerHTML=parsed.body.innerHTML;content.querySelector(".report-toolbar")?.remove();
+ content.querySelectorAll(".report-photos figure").forEach(figure=>{const row=figure.closest("tr");if(!row)return;const cells=row.cells;const index=state.sector.items.findIndex(item=>state.sector.mode==="moradia"?(cells[0]?.textContent.includes(item.area)&&cells[1]?.textContent.includes(item.question)):cells[1]?.textContent.includes(item[0]));if(index<0)return;const siblings=Array.from(row.querySelectorAll(".report-photos figure")),position=siblings.indexOf(figure),caption=figure.querySelector("figcaption");if(caption&&!caption.textContent.startsWith("EV-"))caption.textContent="EV-"+String(index+1).padStart(2,"0")+"-"+String(position+1).padStart(2,"0")+" · "+caption.textContent;});viewer.hidden=false;viewer.setAttribute("aria-hidden","false");$("#reportPrint").focus();await waitForReportAssets(content);content.scrollTop=0;viewer.scrollTop=0;}
 function closeReportViewer(){const viewer=$("#reportViewer");viewer.hidden=true;viewer.setAttribute("aria-hidden","true");$("#reportPrint").blur();}
 async function reportHtml(data){
  const logoUrl=new URL("logo-fg.png",location.href).href;state.reportIntegrity=await buildIntegrity(data);
@@ -306,3 +307,46 @@ $("#saveDraft").addEventListener("click",()=>{if(saveCurrentDraft()){alert("Rasc
 $("#dashboardModule").addEventListener("change",renderDashboard);$("#dashboardPeriod").addEventListener("change",renderDashboard);
 $("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAssets($("#reportContent"));}catch(err){console.warn("Não foi possível aguardar todos os recursos do relatório:",err);}requestAnimationFrame(()=>window.print());});$("#reportFinalize").addEventListener("click",()=>{if(!confirm("Finalizar este relatório? A data e hora serão registradas, e a edição ficará disponível somente após confirmação para reabertura."))return;const finalizedAt=new Date().toISOString();if(!saveCurrentDraft("finalizado",finalizedAt)){alert("Não foi possível salvar os dados da inspeção. O relatório não foi finalizado.");return;}if(!updateHistoryStatus(state.inspectionId,"finalizado",finalizedAt)){alert("Os dados foram preservados, mas não foi possível confirmar a finalização no histórico. Tente novamente.");return;}renderDashboard();$("#dashboardUpdated").textContent="Relatório finalizado em "+new Date(finalizedAt).toLocaleString("pt-BR")+". A reabertura ficará disponível mediante confirmação.";closeReportViewer();renderHome();alert("Relatório finalizado e salvo neste dispositivo. Para reabrir, acesse o módulo e confirme a reabertura do rascunho.");});$("#reportClose").addEventListener("click",closeReportViewer);$("#clearDashboard").addEventListener("click",()=>{if(confirm("Excluir todo o histórico de indicadores salvo neste navegador? Essa ação não poderá ser desfeita.")){localStorage.removeItem(HISTORY_KEY);renderDashboard();}});window.addEventListener("storage",e=>{if(e.key===HISTORY_KEY)renderDashboard();});
 $("#backHome").addEventListener("click",renderHome);$("#homeLink").addEventListener("click",e=>{e.preventDefault();renderHome()});migrateLegacyDrafts();migrateLegacyPhotos();requestStoragePersistence();renderHome();
+
+/* Fase 3: identificação documental, índice de evidências e anexos técnicos. */
+
+function reportCodeForInspection(data={}) {
+ const tags={auditoria:"AUD",engenharia:"ENG",qualidade:"QUA",almoxarifado:"ALM",sesmt:"SST","fg-moradia":"MOR"};
+ const date=String(data.data||new Date().toISOString().slice(0,10)).replace(/\D/g,"");
+ const suffix=String(state.inspectionId||"").slice(-6).toUpperCase();
+ return "A360-"+(tags[state.sector?.id]||"INS")+"-"+date+"-"+suffix;
+}
+function reportAppendicesMarkup() {
+ const references=[...new Set((state.sector.items||[]).flatMap(item=>Array.isArray(item)?String(item[1]||"").split(";").map(x=>x.trim()).filter(Boolean):[]))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
+ const evidence=[];
+ (state.sector.items||[]).forEach((item,i)=>(state.files[i]||[]).forEach((photo,n)=>evidence.push({
+  code:"EV-"+String(i+1).padStart(2,"0")+"-"+String(n+1).padStart(2,"0"),
+  criterion:state.sector.mode==="moradia"?(item.area+" · "+item.question):item[0],
+  name:photo.name||"Imagem sem nome"
+ })));
+ const refs=references.length
+  ?'<h2>Referências técnicas e documentais citadas no checklist</h2><p>Relação consolidada das referências indicadas nos critérios deste roteiro. A listagem não representa validação automática de vigência, edição, aplicabilidade ou atendimento; a confirmação deve ser realizada pelo responsável técnico conforme o escopo e a data da inspeção.</p><ol>'+references.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'
+  :'<h2>Referências técnicas e documentais</h2><p>Este roteiro não possui referências normativas individualizadas cadastradas. Aplicabilidade e requisitos devem ser confirmados pelos responsáveis competentes.</p>';
+ const ev=evidence.length
+  ?'<h2>Índice de evidências fotográficas</h2><table><thead><tr><th>Código</th><th>Critério / ambiente</th><th>Arquivo de origem</th></tr></thead><tbody>'+evidence.map(x=>'<tr><td>'+esc(x.code)+'</td><td>'+esc(x.criterion)+'</td><td>'+esc(x.name)+'</td></tr>').join("")+'</tbody></table>'
+  :'<h2>Índice de evidências fotográficas</h2><p>Não foram anexadas evidências fotográficas a esta inspeção.</p>';
+ return '<section class="report-appendix">'+refs+ev+'<p class="report-disclaimer">Documento gerado pelo Auditoria 360 para apoio ao registro da inspeção. A análise, classificação, validação das evidências e aprovação permanecem sob responsabilidade dos profissionais competentes.</p></section>';
+}
+async function showReportInPage(html) {
+ const parsed=new DOMParser().parseFromString(html,"text/html"),viewer=$("#reportViewer"),content=$("#reportContent");
+ const oldStyle=$("#generatedReportStyle");if(oldStyle)oldStyle.remove();
+ const reportCss=Array.from(parsed.head.querySelectorAll("style")).map(x=>x.textContent).join("\n").replace(/\bbody(?=\s*[{.#[:])/g,"#reportContent");
+ const style=document.createElement("style");style.id="generatedReportStyle";
+ style.textContent=reportCss+"\n.report-appendix{break-before:page;page-break-before:always}.report-appendix li{margin:0 0 5px;line-height:1.4}.report-disclaimer{margin-top:20px;padding-top:9px;border-top:1px solid #ccd6d8;font-size:9px;color:#65777b}.report-print-footer{display:none}@page{size:A4;margin:14mm 12mm 18mm}@media print{.report-print-footer{display:block;position:fixed;left:0;right:0;bottom:-12mm;text-align:center;font:8px Arial;color:#617277}.report-print-footer .page-number:after{content:counter(page)}#reportContent thead{display:table-header-group}#reportContent tr,#reportContent figure,#reportContent img{break-inside:avoid;page-break-inside:avoid}}";
+ document.head.appendChild(style);
+ content.innerHTML=parsed.body.innerHTML;content.querySelector(".report-toolbar")?.remove();
+ const code=reportCodeForInspection(formData()),meta=content.querySelector(".meta");
+ if(meta){const item=document.createElement("div");item.innerHTML="<b>Código do relatório:</b> "+esc(code);meta.prepend(item);}
+ const integrity=content.querySelector("section[style*='border-top']");
+ if(integrity){const line=document.createElement("div");line.innerHTML="<b>Código do relatório:</b> "+esc(code);integrity.prepend(line);}
+ content.insertAdjacentHTML("beforeend",reportAppendicesMarkup());
+ const footer=document.createElement("div");footer.className="report-print-footer";
+ footer.innerHTML="AUDITORIA 360 · "+esc(code)+" · Página <span class='page-number'></span>";content.append(footer);
+ viewer.hidden=false;viewer.setAttribute("aria-hidden","false");$("#reportPrint").focus();
+ await waitForReportAssets(content);content.scrollTop=0;viewer.scrollTop=0;
+}
