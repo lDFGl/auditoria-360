@@ -90,3 +90,15 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - A geração do relatório não exclui o rascunho nem as fotografias. O usuário pode retornar ao checklist e continuar a inspeção.
 - O painel geral consulta o histórico local em `auditoria360-inspection-history-v1`. O período dos indicadores considera a data de conclusão do registro; a data preenchida no formulário permanece como data da vistoria.
 - O histórico é local ao navegador e dispositivo; não representa consolidação multiusuário.
+
+
+## Fase 3 — documentação e apresentação dos relatórios
+- Código legível do relatório no padrão \`A360-[MÓDULO]-[AAAAMMDD]-[SUFIXO]\`, vinculado ao identificador individual da inspeção.
+- Código do relatório incluído nos metadados, no rodapé de impressão e no conteúdo apresentado no relatório.
+- Índice de evidências fotográficas com código, critério/ambiente e nome do arquivo, mantendo as imagens junto aos respectivos critérios.
+- Anexo consolidado das referências técnicas e documentais citadas no checklist, sem declarar validação automática de vigência ou aplicabilidade.
+- Paginação e rodapé próprios para impressão A4, com repetição do cabeçalho das tabelas e proteção contra quebra de linhas e fotografias.
+- Aviso de integridade esclarece que o hash não substitui assinatura digital nem registro externo confiável.
+- Versão do aplicativo: **2.3.0**.
+
+As melhorias de relatório não alteram a metodologia de pontuação, a cobertura, os planos de ação, a criticidade ou os registros históricos. O código legível organiza a identificação, mas permanece local e não representa protocolo central corporativo.
