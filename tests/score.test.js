@@ -10,3 +10,12 @@ test("total variável",()=>assert.equal(calculateScore(["IM/OM","NI"],2).pending
 test("JSON canônico",()=>assert.equal(canonicalize({b:2,a:1}),canonicalize({a:1,b:2})));
 const {createHash}=require("node:crypto");
 test("hash SHA-256 determinístico sobre JSON canônico",()=>{const digest=v=>createHash("sha256").update(canonicalize(v)).digest("hex");assert.equal(digest({b:2,a:1}),digest({a:1,b:2}));assert.equal(digest({a:1}),digest({a:1}));});
+
+test("IM e OM separados possuem pontuação integral",()=>{
+ const r=calculateScore(["IM","OM","PI","NI","NA"],5);
+ assert.equal(r.score,62.5);
+ assert.deepEqual(r.counts,{im:1,om:1,na:1,pi:1,ni:1});
+});
+test("classificação legada IM/OM mantém pontuação integral",()=>{
+ assert.equal(calculateScore(["IM/OM","PI","NI"],3).score,50);
+});
