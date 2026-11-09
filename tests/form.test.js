@@ -38,3 +38,9 @@ test("classificações aparecem na ordem IM, OM, PI, NI e NA",()=>{
 test("cores institucionais exatas das classificações",()=>{
  for(const color of ["#00B050","#4EA72E","#FFC000","#FF0000","#00B0F0"])assert.ok(css.includes(color),color);
 });
+
+test("relatório aplica pontuação ponderada e exibe duas casas decimais",()=>{
+ assert.match(app,/scoreResult\\.pointsTotal\\.toFixed\\(2\\)/);
+ assert.match(app,/score\\.toFixed\\(2\\)/);
+ assert.match(app,/const points=im\\+om\\+\\(pi\\*0\\.65\\)/);
+});
