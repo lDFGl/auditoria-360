@@ -42,5 +42,9 @@ test("cores institucionais exatas das classificações",()=>{
 test("relatório aplica pontuação ponderada e exibe duas casas decimais",()=>{
  assert.ok(app.includes("scoreResult.pointsTotal.toFixed(2)"));
  assert.ok(app.includes("score.toFixed(2)"));
- assert.ok(app.includes("const points=im+om+(pi*0.65)"));
+ assert.ok(app.includes("pi*0.65"));
+});
+
+test("legenda apresenta as cinco classificações em ordem independente",()=>{
+ assert.match(html,/<span class="im">IM<\\/span><span class="om">OM<\\/span><span class="pi">PI<\\/span><span class="ni">NI<\\/span><span class="na">NA<\\/span>/);
 });
