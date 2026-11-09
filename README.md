@@ -71,7 +71,6 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - Na primeira abertura, os rascunhos legados por módulo são copiados para chaves por inspectionId. As chaves antigas permanecem como salvaguarda.
 - As fotos novas são armazenadas no IndexedDB com a chave `inspectionId:indiceDoCriterio`. A migração copia as fotos legadas correspondentes sem apagar os registros originais.
 - A janela de recuperação permite continuar, descartar com confirmação própria ou iniciar uma nova inspeção. Fechar, pressionar Esc ou clicar fora não exclui dados.
-- A exportação JSON inclui formulário, classificações, observações, GPS, identificador e fotos em dataURL. A importação valida o formato e recria um rascunho independente. O backup é manual: guarde os arquivos em local corporativo autorizado.
 - O aplicativo solicita armazenamento persistente quando o navegador oferece suporte; a concessão não é garantida e não substitui backups externos.
 - O rascunho e as fotos só são limpos após confirmação explícita depois da geração do relatório ou após descarte explícito.
 
@@ -82,3 +81,10 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - A pontuação é centralizada em `www/js/score.js`; testes automatizados estão em `tests/score.test.js` e são executados no workflow de validação.
 - Os relatórios registram timestamp ISO, versão, inspectionId e hash SHA-256 do conteúdo e das evidências fotográficas. Se Web Crypto não estiver disponível, o relatório informa a indisponibilidade do hash.
 - O hash só permite detectar alterações se o valor original for registrado em meio externo confiável (por exemplo, e-mail corporativo, sistema documental ou ata). Não é assinatura digital, não comprova autoria e não garante, isoladamente, autenticidade jurídica.
+
+
+## Relatórios e histórico local
+- A conclusão da inspeção prepara o relatório dentro da própria aplicação. O botão **Imprimir / Salvar como PDF** aciona a impressão do navegador, sem abrir pop-up.
+- A geração do relatório não exclui o rascunho nem as fotografias. O usuário pode retornar ao checklist e continuar a inspeção.
+- O painel geral consulta o histórico local em `auditoria360-inspection-history-v1`. O período dos indicadores considera a data de conclusão do registro; a data preenchida no formulário permanece como data da vistoria.
+- O histórico é local ao navegador e dispositivo; não representa consolidação multiusuário.
