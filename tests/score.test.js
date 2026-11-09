@@ -1,21 +1,12 @@
 const test=require("node:test"),assert=require("node:assert/strict"),{calculateScore,canonicalize}=require("../www/js/score.js");
-test("todos IM/OM",()=>assert.equal(calculateScore(["IM/OM","IM/OM"],2).score,100));
-test("mistura",()=>assert.equal(calculateScore(["IM/OM","PI","NI"],3).score,50));
-test("NA excluído",()=>assert.equal(calculateScore(["IM/OM","NA"],2).score,100));
+test("IM e OM valem 1 ponto cada",()=>{const r=calculateScore(["IM","OM"],2);assert.equal(r.score,100);assert.equal(r.pointsTotal,2);assert.deepEqual(r.counts,{im:1,om:1,na:0,pi:0,ni:0});});
+test("PI vale 0,65 ponto",()=>{const r=calculateScore(["PI"],1);assert.equal(r.pointsTotal,0.65);assert.equal(r.score,65);});
+test("metodologia ponderada: 9 IM + 5 PI + 6 NI = 61,25%",()=>{const r=calculateScore([...Array(9).fill("IM"),...Array(5).fill("PI"),...Array(6).fill("NI")],20);assert.equal(r.pointsTotal,12.25);assert.equal(r.evaluated,20);assert.equal(r.score,61.25);});
+test("NA não entra no numerador nem no denominador",()=>{const r=calculateScore(["IM","PI","NA"],3);assert.equal(r.pointsTotal,1.65);assert.equal(r.evaluated,2);assert.equal(r.score,82.5);});
 test("todos NA",()=>assert.equal(calculateScore(["NA","NA"],2).score,null));
 test("nenhum avaliado",()=>assert.equal(calculateScore([],20).score,null));
-test("pendentes",()=>assert.equal(calculateScore(["IM/OM"],4).pending,3));
-test("arredondamento",()=>assert.equal(calculateScore(["IM/OM","IM/OM","PI"],3).score,83.3));
-test("total variável",()=>assert.equal(calculateScore(["IM/OM","NI"],2).pending,0));
+test("pendentes são apresentados separadamente e não entram no denominador",()=>{const r=calculateScore(["IM"],4);assert.equal(r.pending,3);assert.equal(r.evaluated,1);assert.equal(r.score,100);});
+test("classificação legada IM/OM mantém pontuação integral",()=>{assert.equal(calculateScore(["IM/OM","PI","NI"],3).score,55);});
 test("JSON canônico",()=>assert.equal(canonicalize({b:2,a:1}),canonicalize({a:1,b:2})));
 const {createHash}=require("node:crypto");
 test("hash SHA-256 determinístico sobre JSON canônico",()=>{const digest=v=>createHash("sha256").update(canonicalize(v)).digest("hex");assert.equal(digest({b:2,a:1}),digest({a:1,b:2}));assert.equal(digest({a:1}),digest({a:1}));});
-
-test("IM e OM separados possuem pontuação integral",()=>{
- const r=calculateScore(["IM","OM","PI","NI","NA"],5);
- assert.equal(r.score,62.5);
- assert.deepEqual(r.counts,{im:1,om:1,na:1,pi:1,ni:1});
-});
-test("classificação legada IM/OM mantém pontuação integral",()=>{
- assert.equal(calculateScore(["IM/OM","PI","NI"],3).score,50);
-});
