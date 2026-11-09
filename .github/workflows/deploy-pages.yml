@@ -35,6 +35,9 @@ jobs:
           test -f www/logo-fg.png
           test -f www/icons/icon-192.svg
           test -f www/icons/icon-512.svg
+          test -f www/icons/icon-maskable.svg
+          test -s www/fonts/OFL-DM-Sans.txt
+          test -s www/fonts/OFL-Manrope.txt
           test -f www/fonts/dm-sans-variable.woff2
           test -f www/fonts/manrope-variable.woff2
           node -e 'JSON.parse(require("fs").readFileSync("www/manifest.webmanifest","utf8"))'
