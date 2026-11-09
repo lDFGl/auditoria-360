@@ -69,3 +69,25 @@ test("evidências oferecem seleção de arquivo e captura direta pela câmera",(
  assert.match(app,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
  assert.match(css,/\.photo-controls\{display:grid;grid-template-columns:1fr 1fr/);
 });
+
+
+test("plano de ação é exibido somente para critérios PI e NI",()=>{
+ assert.match(app,/const applicable=\["PI","NI"\]\.includes\(state\.ratings\[index\]\)/);
+ assert.match(app,/data-action-plan/);
+ assert.match(app,/syncActionPlanCard\(card,index\)/);
+});
+test("plano de ação registra responsável, prazo, ação, evidência e validação",()=>{
+ for(const field of ["responsible","deadline","action","evidence","status","auditorNote"])assert.ok(app.includes('data-action-field="'+field+'"'),field);
+ assert.match(app,/Validado \/ Encerrado/);
+ assert.match(app,/Aguardando validação do auditor/);
+});
+test("plano de ação é preservado em rascunhos, retomada e integridade do relatório",()=>{
+ assert.match(app,/actionPlans:state\.actionPlans/);
+ assert.match(app,/state\.actionPlans=savedDraft\.actionPlans\|\|\{\}/);
+ assert.match(app,/actionPlans:state\.actionPlans,gps:state\.gps/);
+});
+test("relatório apresenta quadro de plano de ação e sinaliza prazos vencidos",()=>{
+ assert.match(app,/Plano de ação e acompanhamento/);
+ assert.match(app,/actionPlanDisplayStatus\(p\)/);
+ assert.match(app,/Prazo vencido/);
+});

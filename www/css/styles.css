@@ -103,3 +103,19 @@
 
 /* Contraste do título principal no painel de abertura */
 .hero h1{color:#fff}
+
+
+/* Plano de ação vinculado às classificações PI e NI */
+.action-plan{margin:0 0 16px 0;padding:16px 18px 13px;border:1px solid #d7e3e4;border-left:4px solid #c58a19;border-radius:0 10px 10px 0;background:#f8faf9}
+.action-plan.hidden{display:none!important}
+.action-plan-heading{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px;color:#25464c}
+.action-plan-heading strong{font:700 13px Manrope,sans-serif}
+.action-plan-heading span,.action-plan-note{font-size:10px;color:#718186}
+.action-plan-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.action-plan-grid label{display:block;font-size:10px;font-weight:700;color:#425a60}
+.action-plan-grid input,.action-plan-grid select,.action-plan-grid textarea{display:block;width:100%;margin-top:5px;padding:9px 10px;border:1px solid #d5e0e1;border-radius:7px;background:#fff;color:#24383d;font:11px "DM Sans",sans-serif;box-sizing:border-box}
+.action-plan-grid textarea{resize:vertical;line-height:1.45}
+.action-plan-grid .action-wide{grid-column:1/-1}
+.action-overdue{grid-column:1/-1;color:#a43d3b;font-size:10px;font-weight:700}
+.action-plan-note{margin:10px 0 0;line-height:1.45}
+@media(max-width:520px){.action-plan{padding:13px}.action-plan-heading{align-items:flex-start;flex-direction:column;gap:4px}.action-plan-grid{grid-template-columns:1fr}.action-plan-grid .action-wide{grid-column:auto}}
