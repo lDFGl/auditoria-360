@@ -39,7 +39,7 @@
 <label>Local / pavimento<input name="local" placeholder="Ex.: Torre A – 8º pavimento"></label>
 <div class="gps-field"><span class="field-label">Localização da inspeção</span><button type="button" class="btn secondary" id="captureGps">Registrar localização por GPS</button><small id="gpsStatus" aria-live="polite">Localização opcional. Será exibido apenas o link para o mapa no relatório.</small></div>
 </div></div>
-<div class="checklist-toolbar"><div><h3 id="checklistToolbarTitle">Checklist de verificação</h3><p id="checklistToolbarHelp">Selecione uma classificação para cada critério aplicável.</p></div><div class="legend"><span class="im">IM/OM</span><span class="na">NA</span><span class="pi">PI</span><span class="ni">NI</span></div></div>
+<div class="checklist-toolbar"><div><h3 id="checklistToolbarTitle">Checklist de verificação</h3><p id="checklistToolbarHelp">Selecione uma classificação para cada critério aplicável. Pontuação: IM = 1,00 · OM = 1,00 · PI = 0,65 · NI = 0,00 · NA = fora do cálculo.</p></div><div class="legend"><span class="im">IM</span><span class="om">OM</span><span class="pi">PI</span><span class="ni">NI</span><span class="na">NA</span></div></div>
 <div id="questionList" class="question-list"></div>
 <div class="form-panel"><div class="panel-title"><h3>Encerramento</h3><span>Registro geral</span></div><label>Considerações gerais<textarea name="consideracoes" rows="4" placeholder="Síntese da inspeção, pontos positivos e observações relevantes..."></textarea></label></div>
 <div class="action-bar"><button type="button" class="btn secondary" id="saveDraft">Salvar rascunho neste dispositivo</button><button type="submit" class="btn primary">Gerar relatório PDF ↗</button></div>
