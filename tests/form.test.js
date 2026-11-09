@@ -46,5 +46,5 @@ test("relatório aplica pontuação ponderada e exibe duas casas decimais",()=>{
 });
 
 test("legenda apresenta as cinco classificações em ordem independente",()=>{
- assert.match(html,/<span class="im">IM<\\/span><span class="om">OM<\\/span><span class="pi">PI<\\/span><span class="ni">NI<\\/span><span class="na">NA<\\/span>/);
+ assert.ok(html.includes('<span class="im">IM</span><span class="om">OM</span><span class="pi">PI</span><span class="ni">NI</span><span class="na">NA</span>'));
 });
