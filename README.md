@@ -33,7 +33,7 @@ Os cinco módulos de verificação utilizam 20 critérios iniciais, com classifi
 ## Estrutura
 ```
 .github/workflows/   automações de validação e publicação
-app/                 documentação da arquitetura da aplicação
+tests/               testes automatizados
 www/
   index.html         entrada da aplicação
   css/               estilos
