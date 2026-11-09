@@ -1,4 +1,4 @@
-const test=require("node:test"),assert=require("node:assert/strict"),{calculateScore,canonicalize}=require("../www/js/score.js");
+const test=require("node:test"),assert=require("node:assert/strict"),{calculateScore,calculateCoverage,canonicalize}=require("../www/js/score.js");
 test("IM e OM valem 1 ponto cada",()=>{const r=calculateScore(["IM","OM"],2);assert.equal(r.score,100);assert.equal(r.pointsTotal,2);assert.deepEqual(r.counts,{im:1,om:1,na:0,pi:0,ni:0});});
 test("PI vale 0,65 ponto",()=>{const r=calculateScore(["PI"],1);assert.equal(r.pointsTotal,0.65);assert.equal(r.score,65);});
 test("metodologia ponderada: 9 IM + 5 PI + 6 NI = 61,25%",()=>{const r=calculateScore([...Array(9).fill("IM"),...Array(5).fill("PI"),...Array(6).fill("NI")],20);assert.equal(r.pointsTotal,12.25);assert.equal(r.evaluated,20);assert.equal(r.score,61.25);});
@@ -10,3 +10,7 @@ test("classificação legada IM/OM mantém pontuação integral",()=>{assert.equ
 test("JSON canônico",()=>assert.equal(canonicalize({b:2,a:1}),canonicalize({a:1,b:2})));
 const {createHash}=require("node:crypto");
 test("hash SHA-256 determinístico sobre JSON canônico",()=>{const digest=v=>createHash("sha256").update(canonicalize(v)).digest("hex");assert.equal(digest({b:2,a:1}),digest({a:1,b:2}));assert.equal(digest({a:1}),digest({a:1}));});
+
+test("cobertura usa critérios aplicáveis e exclui NA do denominador",()=>{const r=calculateCoverage(["IM","PI","NA",""],4);assert.equal(r.evaluated,2);assert.equal(r.notApplicable,1);assert.equal(r.applicable,3);assert.equal(r.pending,1);assert.equal(r.coverage,Number((2/3*100).toFixed(2)));});
+test("cobertura integral quando todos os critérios aplicáveis foram avaliados",()=>{const r=calculateCoverage(["IM","NI","NA"],3);assert.equal(r.coverage,100);assert.equal(r.applicable,2);});
+test("cobertura não calculável quando não há critérios aplicáveis",()=>{assert.equal(calculateCoverage(["NA","NA"],2).coverage,null);assert.equal(calculateCoverage([],0).coverage,null);});
