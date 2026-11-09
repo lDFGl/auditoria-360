@@ -14,3 +14,18 @@ test("impressão aguarda recursos do relatório antes de abrir diálogo do naveg
  assert.match(app,/waitForReportAssets\(\$\("#reportContent"\)\)/);
  assert.match(app,/requestAnimationFrame\(\(\)=>window\.print\(\)\)/);
 });
+
+test("pré-visualização oferece ação explícita de finalizar relatório",()=>{
+ assert.match(html,/id="reportFinalize">Finalizar relatório/);
+ assert.match(app,/\$\("#reportFinalize"\)\.addEventListener\("click"/);
+ assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);
+ assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);
+});
+test("reabertura de relatório finalizado exige confirmação",()=>{
+ assert.match(app,/Deseja reabrir a edição\?/);
+ assert.match(app,/updateHistoryStatus\(d\.inspectionId,"reaberto",d\.reopenedAt\)/);
+});
+test("logo do relatório usa apenas fundo institucional, sem moldura",()=>{
+ assert.equal((app.match(/background:#135c6c;border:0;border-radius:0/g)||[]).length,2);
+ assert.doesNotMatch(app,/background:#f1f5f5;border:1px solid #c8d8dc;border-left:5px solid #135c6c/);
+});
