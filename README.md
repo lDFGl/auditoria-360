@@ -77,6 +77,7 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 
 ## PWA, fontes e integridade
 - O Service Worker utiliza identificador do commit no deploy e network-first para navegação, HTML, CSS e JavaScript, com fallback de cache para uso offline.
+- Os ícones vetoriais 192, 512 e maskable usam a marca FG existente sobre o fundo institucional #135c6c.
 - As famílias locais DM Sans e Manrope são servidas por um WOFF2 variável cada, acompanhadas das respectivas licenças SIL Open Font License 1.1.
 - A pontuação é centralizada em `www/js/score.js`; testes automatizados estão em `tests/score.test.js` e são executados no workflow de validação.
 - Os relatórios registram timestamp ISO, versão, inspectionId e hash SHA-256 do conteúdo e das evidências fotográficas. Se Web Crypto não estiver disponível, o relatório informa a indisponibilidade do hash.
