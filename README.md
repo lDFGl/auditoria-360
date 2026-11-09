@@ -22,13 +22,13 @@ Os cinco módulos de verificação utilizam 20 critérios iniciais, com classifi
 
 ## Recursos desta versão
 - Identificador individual da inspeção nos relatórios.
-- Salvamento e recuperação de rascunhos por módulo no navegador, incluindo dados gerais, classificações, observações, estados do FG Moradia, quantidade de quartos e localização registrada.
+- Salvamento e recuperação de rascunhos independentes por inspeção no navegador, incluindo dados gerais, classificações, observações, estados do FG Moradia, quantidade de quartos e localização registrada.
 - Evidências fotográficas redimensionadas (lado máximo de 1.600 px, JPEG 0,82) e armazenadas no IndexedDB do dispositivo.
 - Recuperação das fotos junto ao rascunho, desde que os dados locais do navegador não tenham sido apagados.
 - No FG Moradia, o colaborador recebedor é obrigatório para emissão do relatório.
 - Ao alterar a quantidade de quartos, o sistema solicita confirmação e reinicia os registros e as fotos da vistoria para evitar associação incorreta de evidências.
 - Relatório preparado para impressão ou salvamento em PDF pelo navegador.
-- Cache dos arquivos da interface para acesso offline limitado.
+- PWA com cache versionado, atualização controlada e fallback offline para os arquivos da interface.
 
 ## Estrutura
 ```
@@ -64,3 +64,21 @@ O painel inicial apresenta indicadores calculados a partir do histórico de rela
 - filtros por módulo e período (todo o histórico, 30 dias, 90 dias ou 12 meses).
 
 As vistorias FG Moradia são contabilizadas separadamente e não entram na conformidade média. O histórico registra um resumo ao gerar o relatório, limitado aos 500 registros mais recentes, sem armazenar cópias das fotos no painel. Os dados permanecem no navegador/dispositivo e podem ser apagados pelo próprio painel; não há consolidação corporativa, sincronização ou backup central.
+
+
+## Proteção de rascunhos e evidências
+- Cada inspeção usa um identificador próprio e um rascunho independente. Inspeções simultâneas do mesmo módulo deixam de sobrescrever umas às outras.
+- Na primeira abertura, os rascunhos legados por módulo são copiados para chaves por inspectionId. As chaves antigas permanecem como salvaguarda.
+- As fotos novas são armazenadas no IndexedDB com a chave `inspectionId:indiceDoCriterio`. A migração copia as fotos legadas correspondentes sem apagar os registros originais.
+- A janela de recuperação permite continuar, descartar com confirmação própria ou iniciar uma nova inspeção. Fechar, pressionar Esc ou clicar fora não exclui dados.
+- A exportação JSON inclui formulário, classificações, observações, GPS, identificador e fotos em dataURL. A importação valida o formato e recria um rascunho independente. O backup é manual: guarde os arquivos em local corporativo autorizado.
+- O aplicativo solicita armazenamento persistente quando o navegador oferece suporte; a concessão não é garantida e não substitui backups externos.
+- O rascunho e as fotos só são limpos após confirmação explícita depois da geração do relatório ou após descarte explícito.
+
+## PWA, fontes e integridade
+- O Service Worker utiliza identificador do commit no deploy e network-first para navegação, HTML, CSS e JavaScript, com fallback de cache para uso offline.
+- Os ícones vetoriais 192, 512 e maskable usam a marca FG existente sobre o fundo institucional #135c6c.
+- As famílias locais DM Sans e Manrope são servidas por um WOFF2 variável cada, acompanhadas das respectivas licenças SIL Open Font License 1.1.
+- A pontuação é centralizada em `www/js/score.js`; testes automatizados estão em `tests/score.test.js` e são executados no workflow de validação.
+- Os relatórios registram timestamp ISO, versão, inspectionId e hash SHA-256 do conteúdo e das evidências fotográficas. Se Web Crypto não estiver disponível, o relatório informa a indisponibilidade do hash.
+- O hash só permite detectar alterações se o valor original for registrado em meio externo confiável (por exemplo, e-mail corporativo, sistema documental ou ata). Não é assinatura digital, não comprova autoria e não garante, isoladamente, autenticidade jurídica.

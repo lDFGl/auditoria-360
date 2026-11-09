@@ -30,7 +30,19 @@ jobs:
           test -f www/index.html
           test -f www/css/styles.css
           test -f www/js/app.js
-          test -f www/manifest.webmanifest
+          test -f www/js/score.js
+          test -f www/sw.js
+          test -f www/logo-fg.png
+          test -f www/icons/icon-192.svg
+          test -f www/icons/icon-512.svg
+          test -f www/icons/icon-maskable.svg
+          test -s www/fonts/OFL-DM-Sans.txt
+          test -s www/fonts/OFL-Manrope.txt
+          test -f www/fonts/dm-sans-variable.woff2
+          test -f www/fonts/manrope-variable.woff2
+          node -e 'JSON.parse(require("fs").readFileSync("www/manifest.webmanifest","utf8"))'
+      - name: Versionar cache do Service Worker
+        run: sed -i "s/__BUILD_ID__/${GITHUB_SHA}/g" www/sw.js
       - name: Preparar artefato
         uses: actions/upload-pages-artifact@v3
         with:
