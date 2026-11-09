@@ -1,6 +1,7 @@
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs");
 const html=fs.readFileSync("www/index.html","utf8");
 const app=fs.readFileSync("www/js/app.js","utf8");
+const css=fs.readFileSync("www/css/styles.css","utf8");
 test("campo colaborador inicia desativado e não bloqueia módulos ocultos",()=>{
  assert.match(html,/<input name="colaborador" disabled/);
  assert.doesNotMatch(html,/<input name="colaborador"[^>]*required/);
