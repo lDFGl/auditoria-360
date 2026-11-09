@@ -29,3 +29,11 @@ test("logo do relatório usa apenas fundo institucional, sem moldura",()=>{
  assert.equal((app.match(/background:#135c6c;border:0;border-radius:0/g)||[]).length,2);
  assert.doesNotMatch(app,/background:#f1f5f5;border:1px solid #c8d8dc;border-left:5px solid #135c6c/);
 });
+
+test("classificações aparecem na ordem IM, OM, PI, NI e NA",()=>{
+ assert.match(app,/\[\["IM","im"\],\["OM","om"\],\["PI","pi"\],\["NI","ni"\],\["NA","na"\]\]/);
+ assert.match(app,/const order=\["IM","OM","PI","NI","NA"\]/);
+});
+test("cores institucionais exatas das classificações",()=>{
+ for(const color of ["#00B050","#4EA72E","#FFC000","#FF0000","#00B0F0"])assert.ok(css.includes(color),color);
+});
