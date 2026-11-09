@@ -100,3 +100,6 @@
 .photo-action:focus-visible{outline:3px solid #79b8c1;outline-offset:2px}
 .photo-action:active{transform:translateY(1px)}
 @media(max-width:520px){.photo-controls{gap:6px}.photo-action{min-height:42px;padding:8px 6px;font-size:10px}}
+
+/* Contraste do título principal no painel de abertura */
+.hero h1{color:#fff}
