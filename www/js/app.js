@@ -250,7 +250,7 @@ async function buildIntegrity(data){const generatedAt=new Date().toISOString();i
 function integrityFooterMarkup(){const x=state.reportIntegrity||{};return '<section style="margin-top:28px;padding-top:10px;border-top:1px solid #ccd6d8;font:9px Arial;overflow-wrap:anywhere"><b>Integridade do relatório</b><br>Gerado em: '+esc(x.generatedAt||"—")+'<br>Versão: '+esc(x.version||APP_VERSION)+' · ID: '+esc(state.inspectionId)+'<br>SHA-256: '+esc(x.hash||"Hash indisponível neste navegador")+'</section>';}
 function formData(){const f=new FormData($("#inspectionForm"));return Object.fromEntries(f.entries())}
 async function waitForReportAssets(reportWindow){const doc=reportWindow.document;const images=Array.from(doc.images||[]);await Promise.all(images.map(img=>typeof img.decode==="function"?img.decode().catch(()=>{}):img.complete?Promise.resolve():new Promise(resolve=>{img.addEventListener("load",resolve,{once:true});img.addEventListener("error",resolve,{once:true});})));if(doc.fonts?.ready)await doc.fonts.ready.catch(()=>{});await new Promise(resolve=>reportWindow.setTimeout(resolve,250));}
-function reportHtml(data){
+async function reportHtml(data){
  const logoUrl=new URL("logo-fg.png",location.href).href;state.reportIntegrity=await buildIntegrity(data);
  if(state.sector.mode==="moradia"){
   const rows=await Promise.all(state.sector.items.map(async(item,i)=>{
