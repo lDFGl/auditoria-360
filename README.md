@@ -10,15 +10,17 @@ Aplicação web estática para apoio a inspeções multidisciplinares em obras, 
 - SESMT
 - FG Moradia
 
-Os cinco módulos de verificação utilizam 20 critérios iniciais, com classificação IM/OM, NA, PI e NI. O FG Moradia possui checklist de entrega por ambiente, quantidade configurável de quartos e inventário de móveis e eletrodomésticos, sem cálculo de pontuação.
+Os cinco módulos de verificação utilizam 20 critérios iniciais, com classificações independentes IM, OM, PI, NI e NA. O FG Moradia possui checklist de entrega por ambiente, quantidade configurável de quartos e inventário de móveis e eletrodomésticos, sem cálculo de pontuação.
 
 ## Pontuação
-- IM/OM = 100 pontos
-- PI = 50 pontos
-- NI = 0 ponto
-- NA = excluído do denominador
+- IM = 1,00 ponto; OM = 1,00 ponto.
+- PI = 0,65 ponto.
+- NI = 0,00 ponto.
+- NA = não contabilizado: fica fora do numerador e do denominador.
 - Critérios pendentes não entram no cálculo; são apresentados separadamente.
-- A ordem do relatório é IM/OM → NA → PI → NI.
+- Fórmula: (soma dos pontos obtidos ÷ quantidade de critérios classificados, excluídos os NA) × 100.
+- O percentual é apresentado com duas casas decimais.
+- A ordem visual e do relatório é IM → OM → PI → NI → NA.
 
 ## Recursos desta versão
 - Identificador individual da inspeção nos relatórios.
@@ -57,7 +59,7 @@ As referências normativas dos critérios são orientativas e devem ser validada
 ## Painel de indicadores (versão GitHub Pages)
 O painel inicial apresenta indicadores calculados a partir do histórico de relatórios gerados neste navegador:
 - total de inspeções concluídas;
-- conformidade média dos cinco módulos pontuados (IM/OM = 100, PI = 50, NI = 0; NA fora do denominador);
+- conformidade média dos cinco módulos pontuados (IM = 1,00; OM = 1,00; PI = 0,65; NI = 0,00; NA fora do cálculo);
 - quantidade de NI e pendências;
 - distribuição IM/OM, NA, PI e NI;
 - inspeções por módulo e por mês;
