@@ -22,13 +22,13 @@ Os cinco módulos de verificação utilizam 20 critérios iniciais, com classifi
 
 ## Recursos desta versão
 - Identificador individual da inspeção nos relatórios.
-- Salvamento e recuperação de rascunhos por módulo no navegador, incluindo dados gerais, classificações, observações, estados do FG Moradia, quantidade de quartos e localização registrada.
+- Salvamento e recuperação de rascunhos independentes por inspeção no navegador, incluindo dados gerais, classificações, observações, estados do FG Moradia, quantidade de quartos e localização registrada.
 - Evidências fotográficas redimensionadas (lado máximo de 1.600 px, JPEG 0,82) e armazenadas no IndexedDB do dispositivo.
 - Recuperação das fotos junto ao rascunho, desde que os dados locais do navegador não tenham sido apagados.
 - No FG Moradia, o colaborador recebedor é obrigatório para emissão do relatório.
 - Ao alterar a quantidade de quartos, o sistema solicita confirmação e reinicia os registros e as fotos da vistoria para evitar associação incorreta de evidências.
 - Relatório preparado para impressão ou salvamento em PDF pelo navegador.
-- Cache dos arquivos da interface para acesso offline limitado.
+- PWA com cache versionado, atualização controlada e fallback offline para os arquivos da interface.
 
 ## Estrutura
 ```
