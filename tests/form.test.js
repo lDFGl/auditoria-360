@@ -91,3 +91,9 @@ test("relatório apresenta quadro de plano de ação e sinaliza prazos vencidos"
  assert.match(app,/actionPlanDisplayStatus\(p\)/);
  assert.match(app,/Prazo vencido/);
 });
+
+
+test("fase 2 exibe cobertura separada da conformidade e painel de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(html,/id="actionBreakdown"/);assert.match(app,/calculateCoverage\(state\.ratings/);assert.match(app,/Ações com prazo vencido/);});
+test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{assert.match(app,/data-action-field="criticality"/);assert.match(app,/Não definida.*Baixa.*Média.*Alta.*Crítica/);assert.match(app,/criticidade é definida pelo auditor e não altera a pontuação/);});
+test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
+test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
