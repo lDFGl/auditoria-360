@@ -48,3 +48,14 @@ test("relatório aplica pontuação ponderada e exibe duas casas decimais",()=>{
 test("legenda apresenta as cinco classificações em ordem independente",()=>{
  assert.ok(html.includes('<span class="im">IM</span><span class="om">OM</span><span class="pi">PI</span><span class="ni">NI</span><span class="na">NA</span>'));
 });
+
+test("FG Moradia captura a nova quantidade antes de reconstruir o checklist",()=>{
+ assert.match(app,/const nextRoomCount=Number\(e\.target\.value\)/);
+ assert.match(app,/renderMoradia\(nextRoomCount\)/);
+ assert.doesNotMatch(app,/\$\("#inspectionForm"\)\.reset\(\);renderMoradia/);
+});
+test("FG Moradia preserva dados gerais e só reinicia checklist e evidências",()=>{
+ assert.match(app,/await clearSectorPhotos\(previousId\)/);
+ assert.match(app,/state\.files=\{\};state\.ratings=\{\};state\.inspectionId=newInspectionId\(\)/);
+ assert.doesNotMatch(app,/catch\(err\)\{\}state\.files=\{\};state\.ratings=\{\}/);
+});
