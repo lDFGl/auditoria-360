@@ -90,3 +90,4 @@
  #reportContent figure{break-inside:avoid}
  #reportContent img{print-color-adjust:exact;-webkit-print-color-adjust:exact}
 }
+@media(max-width:640px){.report-viewer-toolbar>div{display:grid;grid-template-columns:1fr}.report-viewer-toolbar button{width:100%;}}
