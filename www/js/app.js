@@ -334,6 +334,15 @@ function reportCodeForInspection(data={}) {
  try{localStorage.setItem(key,String(next));}catch(e){throw new Error("Não foi possível reservar o número sequencial do relatório neste navegador.");}
  state.reportCode=prefix+"-"+String(next).padStart(3,"0")+"/"+year;return state.reportCode;
 }
+async function saveReportPdf(id,file,name){
+ if(!file||file.type!=="application/pdf")throw new Error("O gerador não retornou um arquivo PDF válido.");
+ const filename=name||file.name||((state.reportCode||"Relatorio")+".pdf");
+ const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction("reports","readwrite");tx.objectStore("reports").put({blob:file,name:filename,type:"application/pdf",savedAt:new Date().toISOString()},id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
+ db.close();
+ const records=readHistory(),item=records.find(x=>x.id===id);
+ if(item){item.pdfName=filename;item.pdfSavedAt=new Date().toISOString();localStorage.setItem(HISTORY_KEY,JSON.stringify(records));}
+ return filename;
+}
 async function generateAndArchivePdf(id){
  if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível.");
  await waitForReportAssets($("#reportContent"));
