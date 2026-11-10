@@ -162,13 +162,23 @@ function renderDashboard(){
  const peak=Math.max(1,...months.map(x=>x.count));$("#monthlyTrend").innerHTML=months.map(x=>'<div class="trend-item"><span>'+x.label+'</span><div class="bar-track"><i style="width:'+(x.count/peak*100)+'%"></i></div><b>'+x.count+'</b></div>').join("");
  $("#dashboardUpdated").textContent=history.length?"Último registro local: "+new Date(history[0].completedAt||history[0].savedAt).toLocaleString("pt-BR")+". Histórico limitado aos 500 registros mais recentes.":"Os indicadores serão atualizados ao gerar relatórios.";
 }
+
+function renderCompletedInspections(){
+ const host=$("#completedInspections");if(!host)return;
+ const module=$("#dashboardModule")?.value||"all",period=$("#dashboardPeriod")?.value||"all",now=new Date();
+ const records=readHistory().filter(r=>(module==="all"||r.sector===module)&&(period==="all"||(()=>{const d=r.completedAt||r.savedAt||r.date;if(!d)return false;const age=(now-new Date(d))/86400000;return age>=0&&age<=Number(period);})())).sort((a,b)=>String(b.completedAt||b.savedAt||"").localeCompare(String(a.completedAt||a.savedAt||"")));
+ if(!records.length){host.innerHTML='<p class="muted">Nenhum checklist realizado no período selecionado.</p>';return;}
+ host.innerHTML=records.map(r=>{const plans=Object.entries(r.actionPlans||{}).filter(([k,p])=>p&&(["PI","NI"].includes(r.ratings?.[k])||!r.ratings));const sector=sectors.find(s=>s.id===r.sector);return '<article class="completed-checklist"><button type="button" class="completed-checklist-toggle" aria-expanded="false" data-checklist-id="'+esc(r.id)+'"><span><strong>'+esc(r.reportCode||"Checklist realizado")+' · '+esc(r.obra||"Obra não informada")+'</strong><small>'+esc(r.sectorName||sector?.name||r.sector)+' · '+esc(r.responsavel||"Responsável não informado")+' · '+esc(r.date||"")+'</small></span><span class="completed-checklist-meta">'+plans.length+' plano(s) PI/NI <b>＋</b></span></button><div class="completed-checklist-details" data-checklist-details="'+esc(r.id)+'" hidden>'+ (plans.length?plans.map(([k,p])=>{const index=Number(k),item=sector?.items?.[index],question=Array.isArray(item)?item[0]:(item?.question||"Critério "+(index+1)),rating=r.ratings?.[k]||"PI";return '<section class="checklist-action-detail"><div><strong>Critério '+(index+1)+' · '+esc(rating)+'</strong><p>'+esc(question)+'</p></div><dl><dt>Criticidade</dt><dd>'+esc(p.criticality||"Não definida")+'</dd><dt>Responsável</dt><dd>'+esc(p.responsible||"Não definido")+'</dd><dt>Prazo</dt><dd>'+esc(p.deadline||"Não definido")+'</dd><dt>Ação corretiva</dt><dd>'+esc(p.action||p.correctiveAction||"Não informada")+'</dd><dt>Evidência</dt><dd>'+esc(p.evidence||"Não informada")+'</dd><dt>Situação</dt><dd>'+esc(actionPlanDisplayStatus(p))+'</dd></dl></section>';}).join(""):'<p class="muted">Este checklist não possui planos de ação PI/NI registrados.</p>')+'</div></article>';}).join("");
+ host.querySelectorAll("[data-checklist-id]").forEach(btn=>btn.addEventListener("click",()=>{const details=host.querySelector('[data-checklist-details="'+CSS.escape(btn.dataset.checklistId)+'"]');if(!details)return;const opening=details.hidden;details.hidden=!opening;btn.setAttribute("aria-expanded",String(opening));const icon=btn.querySelector(".completed-checklist-meta b");if(icon)icon.textContent=opening?"−":"＋";}));
+}
+
 function renderHome(){
  const collaboratorInput=$('input[name="colaborador"]');
  if(collaboratorInput){collaboratorInput.required=false;collaboratorInput.disabled=true;}
  $("#homeView").classList.remove("hidden");$("#inspectionView").classList.add("hidden");
  $("#sectorGrid").innerHTML=sectors.map(s=>'<button class="sector-card" data-sector="'+s.id+'"><div class="sector-icon">'+s.icon+'</div><h3>'+s.name+'</h3><p>'+s.desc+'</p><div class="card-foot"><span>'+(s.mode==="moradia"?"VISTORIA DE ENTREGA":s.items.length+" VERIFICAÇÕES")+'</span><span>ACESSAR →</span></div></button>').join("");
  document.querySelectorAll("[data-sector]").forEach(b=>b.addEventListener("click",()=>openSector(b.dataset.sector)));
- renderDashboard();renderFinalizedReports();renderActionPlanRegister();
+ renderDashboard();renderFinalizedReports();renderCompletedInspections();
 }
 const moradiaAreas={
  "Quarto":["Porta, maçaneta e fechadura em boas condições","Paredes e pintura sem manchas, trincas ou danos aparentes","Piso e rodapés íntegros, sem peças soltas ou quebradas","Janela, vidros, trilhos e fechos funcionando adequadamente","Tomadas, interruptores e pontos de iluminação funcionando"],
@@ -283,7 +293,7 @@ function updateScore(){
  const result=AuditoriaScore.calculateScore(state.ratings,state.sector.items.length),done=result.evaluated+result.counts.na,total=state.sector.items.length;
  $("#scoreValue").textContent=result.score===null?"—":result.score.toFixed(2).replace(".",",")+"%";const coverage=AuditoriaScore.calculateCoverage(state.ratings,total);$("#scoreCaption").textContent=coverage.evaluated+" de "+coverage.applicable+" aplicáveis · "+(coverage.coverage===null?"—":coverage.coverage.toFixed(2).replace(".",",")+"% de cobertura");$("#progressBar").style.width=(coverage.applicable?coverage.evaluated/coverage.applicable*100:0)+"%";
 }
-const APP_VERSION="2.5.1";
+const APP_VERSION="2.6.0";
 function canonicalize(value){if(Array.isArray(value))return"["+value.map(canonicalize).join(",")+"]";if(value&&typeof value==="object")return"{"+Object.keys(value).sort().map(k=>JSON.stringify(k)+":"+canonicalize(value[k])).join(",")+"}";return JSON.stringify(value);}
 async function hashValue(value){const bytes=new TextEncoder().encode(typeof value==="string"?value:canonicalize(value));const digest=await window.crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");}
 async function buildIntegrity(data){const generatedAt=new Date().toISOString();if(!window.crypto?.subtle)return{generatedAt,hash:null,version:APP_VERSION};try{const photoHashes={};for(const [i,list] of Object.entries(state.files)){photoHashes[i]=[];for(const p of list||[])photoHashes[i].push({name:p.name,sha256:await hashValue(p.dataUrl)});}const payload={inspectionId:state.inspectionId,sector:state.sector.id,form:data,ratings:state.ratings,items:Array.from(document.querySelectorAll("[data-q]")).map(card=>({index:card.dataset.q,observation:card.querySelector('[data-field="obs"]')?.value||"",status:card.querySelector('[data-field="status"]')?.value||""})),actionPlans:state.actionPlans,gps:state.gps,photoHashes,generatedAt,version:APP_VERSION};return{generatedAt,hash:await hashValue(payload),version:APP_VERSION};}catch(e){return{generatedAt,hash:null,version:APP_VERSION};}}
