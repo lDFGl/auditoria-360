@@ -258,7 +258,7 @@ function updateScore(){
  const result=AuditoriaScore.calculateScore(state.ratings,state.sector.items.length),done=result.evaluated+result.counts.na,total=state.sector.items.length;
  $("#scoreValue").textContent=result.score===null?"—":result.score.toFixed(2).replace(".",",")+"%";const coverage=AuditoriaScore.calculateCoverage(state.ratings,total);$("#scoreCaption").textContent=coverage.evaluated+" de "+coverage.applicable+" aplicáveis · "+(coverage.coverage===null?"—":coverage.coverage.toFixed(2).replace(".",",")+"% de cobertura");$("#progressBar").style.width=(coverage.applicable?coverage.evaluated/coverage.applicable*100:0)+"%";
 }
-const APP_VERSION="2.3.0";
+const APP_VERSION="2.3.1";
 function canonicalize(value){if(Array.isArray(value))return"["+value.map(canonicalize).join(",")+"]";if(value&&typeof value==="object")return"{"+Object.keys(value).sort().map(k=>JSON.stringify(k)+":"+canonicalize(value[k])).join(",")+"}";return JSON.stringify(value);}
 async function hashValue(value){const bytes=new TextEncoder().encode(typeof value==="string"?value:canonicalize(value));const digest=await window.crypto.subtle.digest("SHA-256",bytes);return Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");}
 async function buildIntegrity(data){const generatedAt=new Date().toISOString();if(!window.crypto?.subtle)return{generatedAt,hash:null,version:APP_VERSION};try{const photoHashes={};for(const [i,list] of Object.entries(state.files)){photoHashes[i]=[];for(const p of list||[])photoHashes[i].push({name:p.name,sha256:await hashValue(p.dataUrl)});}const payload={inspectionId:state.inspectionId,sector:state.sector.id,form:data,ratings:state.ratings,items:Array.from(document.querySelectorAll("[data-q]")).map(card=>({index:card.dataset.q,observation:card.querySelector('[data-field="obs"]')?.value||"",status:card.querySelector('[data-field="status"]')?.value||""})),actionPlans:state.actionPlans,gps:state.gps,photoHashes,generatedAt,version:APP_VERSION};return{generatedAt,hash:await hashValue(payload),version:APP_VERSION};}catch(e){return{generatedAt,hash:null,version:APP_VERSION};}}
@@ -316,35 +316,15 @@ function reportCodeForInspection(data={}) {
  const suffix=String(state.inspectionId||"").slice(-6).toUpperCase();
  return "A360-"+(tags[state.sector?.id]||"INS")+"-"+date+"-"+suffix;
 }
-function reportAppendicesMarkup() {
- const references=[...new Set((state.sector.items||[]).flatMap(item=>Array.isArray(item)?String(item[1]||"").split(";").map(x=>x.trim()).filter(Boolean):[]))].sort((a,b)=>a.localeCompare(b,"pt-BR"));
- const evidence=[];
- (state.sector.items||[]).forEach((item,i)=>(state.files[i]||[]).forEach((photo,n)=>evidence.push({
-  code:"EV-"+String(i+1).padStart(2,"0")+"-"+String(n+1).padStart(2,"0"),
-  criterion:state.sector.mode==="moradia"?(item.area+" · "+item.question):item[0],
-  name:photo.name||"Imagem sem nome"
- })));
- const refs=references.length
-  ?'<h2>Referências técnicas e documentais citadas no checklist</h2><p>Relação consolidada das referências indicadas nos critérios deste roteiro. A listagem não representa validação automática de vigência, edição, aplicabilidade ou atendimento; a confirmação deve ser realizada pelo responsável técnico conforme o escopo e a data da inspeção.</p><ol>'+references.map(x=>'<li>'+esc(x)+'</li>').join("")+'</ol>'
-  :'<h2>Referências técnicas e documentais</h2><p>Este roteiro não possui referências normativas individualizadas cadastradas. Aplicabilidade e requisitos devem ser confirmados pelos responsáveis competentes.</p>';
- const ev=evidence.length
-  ?'<h2>Índice de evidências fotográficas</h2><table><thead><tr><th>Código</th><th>Critério / ambiente</th><th>Arquivo de origem</th></tr></thead><tbody>'+evidence.map(x=>'<tr><td>'+esc(x.code)+'</td><td>'+esc(x.criterion)+'</td><td>'+esc(x.name)+'</td></tr>').join("")+'</tbody></table>'
-  :'<h2>Índice de evidências fotográficas</h2><p>Não foram anexadas evidências fotográficas a esta inspeção.</p>';
- return '<section class="report-appendix">'+refs+ev+'<p class="report-disclaimer">Documento gerado pelo Auditoria 360 para apoio ao registro da inspeção. A análise, classificação, validação das evidências e aprovação permanecem sob responsabilidade dos profissionais competentes.</p></section>';
-}
 async function showReportInPage(html) {
  const parsed=new DOMParser().parseFromString(html,"text/html"),viewer=$("#reportViewer"),content=$("#reportContent");
  const oldStyle=$("#generatedReportStyle");if(oldStyle)oldStyle.remove();
  const reportCss=Array.from(parsed.head.querySelectorAll("style")).map(x=>x.textContent).join("\n").replace(/\bbody(?=\s*[{.#[:])/g,"#reportContent");
  const style=document.createElement("style");style.id="generatedReportStyle";
- style.textContent=reportCss+"\n.report-appendix{break-before:page;page-break-before:always}.report-appendix li{margin:0 0 5px;line-height:1.4}.report-disclaimer{margin-top:20px;padding-top:9px;border-top:1px solid #ccd6d8;font-size:9px;color:#65777b}.report-print-footer{display:none}@page{size:A4;margin:14mm 12mm 18mm}@media print{.report-print-footer{display:block;position:fixed;left:0;right:0;bottom:-12mm;text-align:center;font:8px Arial;color:#617277}.report-print-footer .page-number:after{content:counter(page)}#reportContent thead{display:table-header-group}#reportContent tr,#reportContent figure,#reportContent img{break-inside:avoid;page-break-inside:avoid}}";
+ style.textContent=reportCss+"\n.report-print-footer{display:none}@page{size:A4;margin:14mm 12mm 18mm}@media print{.report-print-footer{display:block;position:fixed;left:0;right:0;bottom:4mm;text-align:center;font:8px Arial;color:#617277;z-index:9999;white-space:nowrap}#reportContent thead{display:table-header-group}#reportContent tr,#reportContent figure,#reportContent img{break-inside:avoid;page-break-inside:avoid}}";
  document.head.appendChild(style);
  content.innerHTML=parsed.body.innerHTML;content.querySelector(".report-toolbar")?.remove();
- const code=reportCodeForInspection(formData()),meta=content.querySelector(".meta");
- if(meta){const item=document.createElement("div");item.innerHTML="<b>Código do relatório:</b> "+esc(code);meta.prepend(item);}
- const integrity=content.querySelector("section[style*='border-top']");
- if(integrity){const line=document.createElement("div");line.innerHTML="<b>Código do relatório:</b> "+esc(code);integrity.prepend(line);}
- content.insertAdjacentHTML("beforeend",reportAppendicesMarkup());
+ const code=reportCodeForInspection(formData());
  const footer=document.createElement("div");footer.className="report-print-footer";
  footer.innerHTML="AUDITORIA 360 · "+esc(code)+" · Página <span class='page-number'></span>";content.append(footer);
  viewer.hidden=false;viewer.setAttribute("aria-hidden","false");$("#reportPrint").focus();
