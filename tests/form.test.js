@@ -117,6 +117,21 @@ test("finalização gera e arquiva o PDF automaticamente antes de concluir",()=>
 
 test("finalização gera e arquiva automaticamente o PDF sem anexação manual",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/async function generateAndArchivePdf/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/PDF gerado e arquivado automaticamente/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
-test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.match(app,/listDrafts\(sector\.id\)\.filter\(d=>d\.status!=="finalizado"\)/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderActionPlanRegister\(\)/);});
+test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.match(app,/listDrafts\(sector\.id\)\.filter\(d=>d\.status!=="finalizado"\)/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
 test("planos PI/NI são consultados dentro do checklist realizado, sem painel isolado",()=>{assert.match(html,/id="completedInspections"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function renderCompletedInspections/);assert.match(app,/data-checklist-details/);assert.match(app,/data-checklist-id/);});
+
+test("registro isolado de planos e referências órfãs foram removidos",()=>{
+ assert.doesNotMatch(app,/function renderActionPlanRegister/);
+ assert.doesNotMatch(app,/\$\("#actionBreakdown"\)/);
+ assert.doesNotMatch(app,/renderActionPlanRegister\(\)/);
+});
+test("histórico e índice de rascunhos não descartam silenciosamente registros antigos",()=>{
+ assert.doesNotMatch(app,/history\.slice\(0,500\)/);
+ assert.doesNotMatch(app,/a\.slice\(0,500\)/);
+});
+test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
+ const workflow=fs.readFileSync(".github/workflows/deploy-pages.yml","utf8");
+ assert.match(workflow,/build:\s*\n\s+needs: validate/);
+ assert.match(workflow,/test -s www\/js\/vendor\/html2pdf\.bundle\.min\.js/);
+});
