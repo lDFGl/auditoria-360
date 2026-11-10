@@ -197,3 +197,16 @@
  #reportContent th,#reportContent td{min-width:0!important;overflow-wrap:anywhere!important;word-break:break-word!important}
  #reportContent .meta{grid-template-columns:repeat(2,minmax(0,1fr))!important}
 }
+
+#reportContent.pdf-capturing .t-moradia th:nth-child(1){width:13%}
+#reportContent.pdf-capturing .t-moradia th:nth-child(2){width:25%}
+#reportContent.pdf-capturing .t-moradia th:nth-child(3){width:12%}
+#reportContent.pdf-capturing .t-moradia th:nth-child(4){width:25%}
+#reportContent.pdf-capturing .t-moradia th:nth-child(5){width:25%}
+@media print{
+ #reportContent .t-moradia th:nth-child(1){width:13%}
+ #reportContent .t-moradia th:nth-child(2){width:25%}
+ #reportContent .t-moradia th:nth-child(3){width:12%}
+ #reportContent .t-moradia th:nth-child(4){width:25%}
+ #reportContent .t-moradia th:nth-child(5){width:25%}
+}
