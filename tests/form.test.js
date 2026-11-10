@@ -112,10 +112,10 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
 test("tela inicial apresenta checklists realizados com planos PI/NI vinculados",()=>{assert.match(html,/id="completedInspections"/);assert.match(app,/function renderCompletedInspections/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
-test("finalização usa a impressão nativa do navegador",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/window\.print\(\)/);assert.doesNotMatch(app,/await generateAndArchivePdf\(state\.inspectionId\)/);});
+test("finalização gera, arquiva e registra automaticamente o PDF",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename\)/);assert.doesNotMatch(app,/window\.print\(\)/);});
 
 
-test("o aplicativo não carrega nem utiliza gerador de PDF por captura",()=>{assert.doesNotMatch(html,/html2pdf\.bundle/);assert.doesNotMatch(app,/html2pdf|outputPdf\("blob"\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
+test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
 test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
@@ -133,5 +133,5 @@ test("histórico e índice de rascunhos não descartam silenciosamente registros
 test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
  const workflow=fs.readFileSync(".github/workflows/deploy-pages.yml","utf8");
  assert.match(workflow,/build:\s*\n\s+needs: validate/);
- assert.doesNotMatch(workflow,/html2pdf\.bundle/);
+ assert.match(workflow,/html2pdf\.bundle\.min\.js/);
 });
