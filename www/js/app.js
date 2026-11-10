@@ -360,47 +360,6 @@ function reportCodeForInspection(data={}) {
  try{localStorage.setItem(key,String(next));}catch(e){throw new Error("Não foi possível reservar o número sequencial do relatório neste navegador.");}
  state.reportCode=prefix+"-"+String(next).padStart(3,"0")+"/"+year;return state.reportCode;
 }
-async function saveReportPdf(id,file,name){
- if(!file||file.type!=="application/pdf")throw new Error("O gerador não retornou um arquivo PDF válido.");
- const filename=name||file.name||((state.reportCode||"Relatorio")+".pdf");
- const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction("reports","readwrite");tx.objectStore("reports").put({blob:file,name:filename,type:"application/pdf",savedAt:new Date().toISOString()},id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
- db.close();
- const records=readHistory(),item=records.find(x=>x.id===id);
- if(item){item.pdfName=filename;item.pdfSavedAt=new Date().toISOString();localStorage.setItem(HISTORY_KEY,JSON.stringify(records));}
- return filename;
-}
-async function generateAndArchivePdf(id){
- if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível. Atualize a página e tente novamente.");
- const content=$("#reportContent");
- if(!content||!content.innerHTML.trim())throw new Error("O conteúdo do relatório não está disponível para geração do PDF.");
- await waitForReportAssets(content);
- const isMoradia=state.sector?.mode==="moradia";
- const filename=((state.reportCode||"Relatorio")+"_"+String(formData().obra||"Inspecao").replace(/[^a-z0-9_-]+/gi,"_")+".pdf");
- content.classList.add("pdf-capturing");
- let blob;
- try{
-  blob=await window.html2pdf().set({
-   margin:[12,12,12,12],
-   filename,
-   image:{type:"jpeg",quality:isMoradia?0.9:0.96},
-   html2canvas:{
-    scale:isMoradia?1:1.5,
-    useCORS:true,
-    backgroundColor:"#ffffff",
-    scrollX:0,
-    scrollY:0,
-    windowWidth:Math.max(content.scrollWidth,content.clientWidth),
-    logging:false
-   },
-   jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
-   pagebreak:{mode:["css","legacy"],avoid:["tr","figure","h2","h3"]}
-  }).from(content).outputPdf("blob");
- }finally{
-  content.classList.remove("pdf-capturing");
- }
- if(!blob||blob.type!=="application/pdf"||blob.size<1000)throw new Error("O PDF gerado está vazio ou inválido.");
- return await saveReportPdf(id,blob,filename);
-}
 async function readReportPdf(id){
  const db=await openPhotoDB();return new Promise((resolve,reject)=>{const req=db.transaction("reports","readonly").objectStore("reports").get(id);req.onsuccess=()=>{db.close();resolve(req.result||null);};req.onerror=()=>{db.close();reject(req.error);};});
 }
