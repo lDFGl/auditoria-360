@@ -98,7 +98,7 @@ test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{a
 test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
 test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
 
-test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/reportCodeForInspection/);assert.match(app,/class="report-code"/);assert.match(app,/const APP_VERSION="2\.4\.1"/);});
+test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/reportCodeForInspection/);assert.match(app,/class="report-code"/);assert.match(app,/const APP_VERSION="2\.5\.0"/);});
 test("PDF não gera folha exclusiva de referências ou índice de evidências",()=>{assert.doesNotMatch(app,/reportAppendicesMarkup|report-appendix|Índice de evidências fotográficas/);assert.doesNotMatch(app,/Referências técnicas e documentais citadas no checklist/);});
 test("código e hash não são injetados no cabeçalho ou na legenda",()=>{assert.match(app,/function integrityFooterMarkup/);assert.match(app,/SHA-256/);assert.doesNotMatch(app,/meta\.prepend\(item\)|integrity\.prepend\(line\)/);});
 test("fase 3 prepara paginação e rodapé de impressão",()=>{assert.match(app,/report-print-footer/);assert.match(app,/bottom:4mm/);assert.match(app,/report-print-footer/);assert.match(app,/page-break-inside:avoid/);});
@@ -106,10 +106,13 @@ test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()
 
 
 test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(app,/reportCode:state\.reportCode/);});
-test("arquivo local permite anexar e abrir PDFs de relatórios finalizados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(app,/function saveReportPdf/);assert.match(app,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-upload/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
+test("arquivo local permite baixar PDFs gerados automaticamente de relatórios finalizados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(app,/function saveReportPdf/);assert.match(app,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
 test("código de identificação aparece no cabeçalho dos dois modelos de relatório",()=>{assert.match(app,/class="report-code"/);assert.match(app,/esc\(state\.reportCode\)/);});
 
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
 test("tela inicial apresenta registro detalhado de todos os planos PI e NI",()=>{assert.match(html,/id="actionPlanRegister"/);assert.match(app,/function renderActionPlanRegister/);assert.match(app,/Plano de ação PI \/ NI/);assert.match(app,/plan-register-grid/);});
 test("finalização abre automaticamente a impressão do relatório após confirmar salvamento",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await waitForReportAssets\(\$\("#reportContent"\)\);window\.print\(\)/);});
+
+
+test("finalização gera e arquiva automaticamente o PDF sem anexação manual",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/async function generateAndArchivePdf/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/PDF gerado e arquivado automaticamente/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
