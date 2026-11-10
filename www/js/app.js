@@ -322,10 +322,10 @@ $("#dashboardModule").addEventListener("change",renderDashboard);$("#dashboardPe
 $("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAssets($("#reportContent"));}catch(err){console.warn("Não foi possível aguardar todos os recursos do relatório:",err);}requestAnimationFrame(()=>window.print());});$("#reportFinalize").addEventListener("click",async()=>{
  const button=$("#reportFinalize");
  if(button.dataset.processing==="true")return;
- if(!confirm("Finalizar este relatório? O PDF será gerado e arquivado automaticamente neste navegador, junto com a data e hora da finalização."))return;
+ if(!confirm("Finalizar este relatório? A janela nativa de impressão será aberta para você salvar o PDF pelo navegador."))return;
  button.dataset.processing="true";
  button.disabled=true;
- button.textContent="Gerando PDF…";
+ button.textContent="Preparando impressão…";
  try{
   const finalizedAt=new Date().toISOString();
   if(!saveCurrentDraft("finalizado",finalizedAt))throw new Error("Não foi possível salvar os dados da inspeção neste navegador.");
