@@ -133,5 +133,5 @@ test("histórico e índice de rascunhos não descartam silenciosamente registros
 test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
  const workflow=fs.readFileSync(".github/workflows/deploy-pages.yml","utf8");
  assert.match(workflow,/build:\s*\n\s+needs: validate/);
- assert.match(workflow,/test -s www\/js\/vendor\/html2pdf\.bundle\.min\.js/);
+ assert.doesNotMatch(workflow,/html2pdf\.bundle/);
 });
