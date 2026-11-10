@@ -281,8 +281,6 @@ async function buildIntegrity(data){const generatedAt=new Date().toISOString();i
 function integrityFooterMarkup(){const x=state.reportIntegrity||{};return '<section style="margin-top:28px;padding-top:10px;border-top:1px solid #ccd6d8;font:9px Arial;overflow-wrap:anywhere"><b>Integridade do relatório</b><br>Gerado em: '+esc(x.generatedAt||"—")+'<br>Versão: '+esc(x.version||APP_VERSION)+' · Código: '+esc(state.reportCode||"—")+' · ID: '+esc(state.inspectionId)+'<br>SHA-256: '+esc(x.hash||"Hash indisponível neste navegador")+'<br><small>A análise, classificação, validação das evidências e aprovação permanecem sob responsabilidade dos profissionais competentes.</small></section>';}
 function formData(){const f=new FormData($("#inspectionForm"));return Object.fromEntries(f.entries())}
 async function waitForReportAssets(container,timeoutMs=10000){const images=Array.from(container.querySelectorAll("img"));await Promise.all(images.map(img=>new Promise(resolve=>{let settled=false;const finish=()=>{if(settled)return;settled=true;resolve();};const timer=setTimeout(finish,timeoutMs);if(typeof img.decode==="function"){img.decode().catch(()=>{}).finally(()=>{clearTimeout(timer);finish();});}else if(img.complete){clearTimeout(timer);finish();}else{img.addEventListener("load",()=>{clearTimeout(timer);finish();},{once:true});img.addEventListener("error",()=>{clearTimeout(timer);finish();},{once:true});}})));if(document.fonts?.ready)await Promise.race([document.fonts.ready.catch(()=>{}),new Promise(resolve=>setTimeout(resolve,timeoutMs))]);}
-async function showReportInPage(html){const parsed=new DOMParser().parseFromString(html,"text/html"),viewer=$("#reportViewer"),content=$("#reportContent");const oldStyle=$("#generatedReportStyle");if(oldStyle)oldStyle.remove();const reportCss=Array.from(parsed.head.querySelectorAll("style")).map(x=>x.textContent).join("\n").replace(/\bbody(?=\s*[{.#[:])/g,"#reportContent");const style=document.createElement("style");style.id="generatedReportStyle";style.textContent=reportCss;document.head.appendChild(style);content.innerHTML=parsed.body.innerHTML;content.querySelector(".report-toolbar")?.remove();
- content.querySelectorAll(".report-photos figure").forEach(figure=>{const row=figure.closest("tr");if(!row)return;const cells=row.cells;const index=state.sector.items.findIndex(item=>state.sector.mode==="moradia"?(cells[0]?.textContent.includes(item.area)&&cells[1]?.textContent.includes(item.question)):cells[1]?.textContent.includes(item[0]));if(index<0)return;const siblings=Array.from(row.querySelectorAll(".report-photos figure")),position=siblings.indexOf(figure),caption=figure.querySelector("figcaption");if(caption&&!caption.textContent.startsWith("EV-"))caption.textContent="EV-"+String(index+1).padStart(2,"0")+"-"+String(position+1).padStart(2,"0")+" · "+caption.textContent;});viewer.hidden=false;viewer.setAttribute("aria-hidden","false");$("#reportPrint").focus();await waitForReportAssets(content);content.scrollTop=0;viewer.scrollTop=0;}
 function closeReportViewer(){const viewer=$("#reportViewer");viewer.hidden=true;viewer.setAttribute("aria-hidden","true");$("#reportPrint").blur();}
 async function reportHtml(data){
  const logoUrl=new URL("logo-fg.png",location.href).href;reportCodeForInspection(data);state.reportIntegrity=await buildIntegrity(data);
@@ -393,59 +391,8 @@ async function generateAndArchivePdf(id){
     backgroundColor:"#ffffff",
     scrollX:0,
     scrollY:0,
-    windowWidth:794,
-    logging:false,
-    onclone:(clonedDoc)=>{
-     const report=clonedDoc.getElementById("reportContent");
-     if(!report)return;
-     const set=(el,property,value)=>el.style.setProperty(property,value,"important");
-     set(report,"width","186mm");
-     set(report,"min-width","0");
-     set(report,"max-width","186mm");
-     set(report,"margin","0");
-     set(report,"padding","0");
-     set(report,"box-sizing","border-box");
-     set(report,"overflow","visible");
-     report.querySelectorAll("*").forEach(el=>set(el,"box-sizing","border-box"));
-     report.querySelectorAll(".meta").forEach(el=>{
-      set(el,"display","grid");
-      set(el,"grid-template-columns","repeat(2,minmax(0,1fr))");
-      set(el,"width","100%");
-     });
-     report.querySelectorAll(".meta>div,.report-header h1").forEach(el=>{
-      set(el,"min-width","0");
-      set(el,"overflow-wrap","anywhere");
-     });
-     report.querySelectorAll(".report-header").forEach(el=>{
-      set(el,"display","flex");
-      set(el,"width","100%");
-      set(el,"max-width","100%");
-      set(el,"align-items","center");
-     });
-     report.querySelectorAll(".report-header h1").forEach(el=>set(el,"flex","1 1 0"));
-     report.querySelectorAll("table").forEach(table=>{
-      set(table,"display","table");
-      set(table,"width","100%");
-      set(table,"min-width","0");
-      set(table,"max-width","100%");
-      set(table,"table-layout","fixed");
-      set(table,"border-collapse","collapse");
-     });
-     report.querySelectorAll("th,td").forEach(cell=>{
-      set(cell,"min-width","0");
-      set(cell,"max-width","100%");
-      set(cell,"overflow-wrap","anywhere");
-      set(cell,"word-break","break-word");
-     });
-     report.querySelectorAll("img").forEach(img=>{
-      set(img,"max-width","100%");
-      set(img,"height","auto");
-     });
-     report.querySelectorAll(".report-photos figure").forEach(figure=>{
-      set(figure,"width","105px");
-      set(figure,"max-width","100%");
-     });
-    }
+    windowWidth:Math.max(content.scrollWidth,content.clientWidth),
+    logging:false
    },
    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
    pagebreak:{mode:["css","legacy"],avoid:["tr","figure","h2","h3"]}
