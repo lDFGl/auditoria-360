@@ -5,6 +5,8 @@ on:
     branches: [main]
     paths:
       - "www/**"
+      - "tests/**"
+      - ".github/workflows/validate.yml"
       - ".github/workflows/deploy-pages.yml"
   workflow_dispatch:
 
@@ -18,6 +20,33 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  validate:
+    needs: validate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar repositório
+        uses: actions/checkout@v4
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Verificar JavaScript e testes
+        run: |
+          node --check www/js/app.js
+          node --check www/js/score.js
+          node --check www/sw.js
+          node --test tests/*.test.js
+      - name: Verificar arquivos essenciais e dependências offline
+        run: |
+          test -s www/index.html
+          test -s www/css/styles.css
+          test -s www/js/app.js
+          test -s www/js/score.js
+          test -s www/js/vendor/html2pdf.bundle.min.js
+          test -s www/manifest.webmanifest
+          test -s www/sw.js
+          test -s www/icons/icon-maskable.svg
+          node -e 'JSON.parse(require("fs").readFileSync("www/manifest.webmanifest","utf8"))'
   build:
     runs-on: ubuntu-latest
     steps:
