@@ -98,10 +98,10 @@ test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{a
 test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
 test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
 
-test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/Código do relatório/);assert.match(app,/const APP_VERSION="2\.3\.1"/);});
+test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/reportCodeForInspection/);assert.match(app,/class="report-code"/);assert.match(app,/const APP_VERSION="2\.4\.0"/);});
 test("PDF não gera folha exclusiva de referências ou índice de evidências",()=>{assert.doesNotMatch(app,/reportAppendicesMarkup|report-appendix|Índice de evidências fotográficas/);assert.doesNotMatch(app,/Referências técnicas e documentais citadas no checklist/);});
 test("código e hash não são injetados no cabeçalho ou na legenda",()=>{assert.match(app,/function integrityFooterMarkup/);assert.match(app,/SHA-256/);assert.doesNotMatch(app,/meta\.prepend\(item\)|integrity\.prepend\(line\)/);});
-test("fase 3 prepara paginação e rodapé de impressão",()=>{assert.match(app,/report-print-footer/);assert.match(app,/counter\(page\)/);assert.match(app,/page-break-inside:avoid/);});
+test("fase 3 prepara paginação e rodapé de impressão",()=>{assert.match(app,/report-print-footer/);assert.match(app,/bottom:4mm/);assert.match(app,/report-print-footer/);assert.match(app,/page-break-inside:avoid/);});
 test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()=>{assert.match(app,/SHA-256/);assert.match(app,/A análise, classificação, validação das evidências e aprovação permanecem sob responsabilidade/);});
 
 
