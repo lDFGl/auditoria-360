@@ -352,7 +352,7 @@ async function generateAndArchivePdf(id){
  let blob;
  try{
   blob=await window.html2pdf().set({
-   margin:[9,9,12,9],filename,image:{type:"jpeg",quality:0.96},
+   margin:[12,12,12,12],filename,image:{type:"jpeg",quality:0.96},
    html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff",scrollX:0,scrollY:0},
    jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
    pagebreak:{mode:["css","legacy"],avoid:["tr","figure","h2","h3"]}
