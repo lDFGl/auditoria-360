@@ -79,6 +79,11 @@
 .report-viewer-toolbar>div{display:flex;gap:8px;flex-wrap:wrap}
 .report-content{width:min(100%,1100px);margin:0 auto;padding:24px;background:#fff;box-shadow:0 2px 12px rgba(0,0,0,.08);color:#24383d}
 .report-content img{max-width:100%;height:auto}
+/* Evita que tabelas e textos longos ultrapassem a área útil do relatório/PDF */
+#reportContent{width:100%;max-width:100%;min-width:0;box-sizing:border-box}
+#reportContent table{width:100%!important;max-width:100%!important;table-layout:fixed}
+#reportContent th,#reportContent td{min-width:0;overflow-wrap:anywhere;word-break:normal}
+#reportContent img,#reportContent figure{max-width:100%;box-sizing:border-box}
 @media(max-width:640px){.report-viewer{padding:8px}.report-viewer-toolbar{align-items:flex-start;padding:10px}.report-viewer-toolbar span{flex-basis:100%;order:2}.report-viewer-toolbar>div{width:100%;order:3}.report-viewer-toolbar button{flex:1;min-height:42px}.report-content{padding:12px;overflow-wrap:anywhere}}
 @media print{
  @page{margin:12mm}

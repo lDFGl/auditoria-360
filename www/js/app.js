@@ -349,7 +349,7 @@ async function generateAndArchivePdf(id){
  if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível.");
  await waitForReportAssets($("#reportContent"));
  const filename=((state.reportCode||"Relatorio")+"_"+String(formData().obra||"Inspecao").replace(/[^a-z0-9_-]+/gi,"_")+".pdf");
- const blob=await window.html2pdf().set({margin:[9,9,12,9],filename,image:{type:"jpeg",quality:0.96},html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff",scrollY:0},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from($("#reportContent")).outputPdf("blob");
+ const blob=await window.html2pdf().set({margin:[9,9,12,9],filename,image:{type:"jpeg",quality:0.96},html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff",scrollY:0,windowWidth:794,onclone:(clonedDoc)=>{const content=clonedDoc.getElementById("reportContent");if(content){content.style.width="725px";content.style.maxWidth="725px";content.style.minWidth="0";content.style.margin="0";content.style.padding="0";content.style.boxSizing="border-box";content.style.overflow="visible";content.querySelectorAll("table").forEach(table=>{table.style.width="100%";table.style.maxWidth="100%";table.style.tableLayout="fixed";});content.querySelectorAll("th,td").forEach(cell=>{cell.style.overflowWrap="anywhere";cell.style.wordBreak="normal";});}}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from($("#reportContent")).outputPdf("blob");
  if(!blob||blob.type!=="application/pdf"||blob.size<1000)throw new Error("O PDF gerado está vazio ou inválido.");
  return await saveReportPdf(id,blob,filename);
 }
