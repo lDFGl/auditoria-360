@@ -93,12 +93,12 @@ test("relatório apresenta quadro de plano de ação e sinaliza prazos vencidos"
 });
 
 
-test("fase 2 exibe cobertura separada da conformidade e painel de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(html,/id="actionBreakdown"/);assert.match(app,/calculateCoverage\(state\.ratings/);assert.match(app,/Ações com prazo vencido/);});
+test("fase 2 exibe cobertura separada da conformidade e indicadores de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(app,/Ações com prazo vencido/);assert.match(app,/Achados de alta criticidade/);});
 test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{assert.match(app,/data-action-field="criticality"/);assert.match(app,/Não definida.*Baixa.*Média.*Alta.*Crítica/);assert.match(app,/criticidade é definida pelo auditor e não altera a pontuação/);});
 test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
 test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
 
-test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/reportCodeForInspection/);assert.match(app,/class="report-code"/);assert.match(app,/const APP_VERSION="2\.5\.1"/);});
+test("fase 3 identifica o relatório com código legível e versão atualizada",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/reportCodeForInspection/);assert.match(app,/class="report-code"/);assert.match(app,/const APP_VERSION="2\.6\.0"/);});
 test("PDF não gera folha exclusiva de referências ou índice de evidências",()=>{assert.doesNotMatch(app,/reportAppendicesMarkup|report-appendix|Índice de evidências fotográficas/);assert.doesNotMatch(app,/Referências técnicas e documentais citadas no checklist/);});
 test("código e hash não são injetados no cabeçalho ou na legenda",()=>{assert.match(app,/function integrityFooterMarkup/);assert.match(app,/SHA-256/);assert.doesNotMatch(app,/meta\.prepend\(item\)|integrity\.prepend\(line\)/);});
 test("fase 3 prepara paginação e rodapé de impressão",()=>{assert.match(app,/report-print-footer/);assert.match(app,/bottom:4mm/);assert.match(app,/report-print-footer/);assert.match(app,/page-break-inside:avoid/);});
@@ -111,7 +111,7 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
-test("tela inicial apresenta registro detalhado de todos os planos PI e NI",()=>{assert.match(html,/id="actionPlanRegister"/);assert.match(app,/function renderActionPlanRegister/);assert.match(html,/Planos de ação PI \/ NI/);assert.match(app,/plan-register-grid/);});
+test("tela inicial apresenta checklists realizados com planos PI/NI vinculados",()=>{assert.match(html,/id="completedInspections"/);assert.match(app,/function renderCompletedInspections/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
 test("finalização gera e arquiva o PDF automaticamente antes de concluir",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId\)/);assert.match(app,/PDF gerado e arquivado/);});
 
 
