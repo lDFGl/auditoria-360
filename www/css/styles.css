@@ -139,6 +139,17 @@
 #reportContent.pdf-capturing .meta>div{min-width:0;overflow-wrap:anywhere}
 #reportContent.pdf-capturing .report-header h1{flex:1 1 0;min-width:0}
 #reportContent.pdf-capturing .report-code{flex:0 0 auto}
+#reportContent.pdf-capturing .report-header,
+#reportContent.pdf-capturing .report-header img{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#reportContent.pdf-capturing .report-header{break-inside:avoid;page-break-inside:avoid}
+#reportContent.pdf-capturing table{break-inside:auto}
+#reportContent.pdf-capturing thead{display:table-header-group}
+#reportContent.pdf-capturing tfoot{display:table-footer-group}
+#reportContent.pdf-capturing tr,
+#reportContent.pdf-capturing figure,
+#reportContent.pdf-capturing img{break-inside:avoid;page-break-inside:avoid}
+#reportContent.pdf-capturing h2{break-after:avoid-page}
+#reportContent.pdf-capturing a{color:inherit;text-decoration:none}
 #reportContent.pdf-capturing table{width:100%;table-layout:fixed;border-collapse:collapse}
 #reportContent.pdf-capturing th,#reportContent.pdf-capturing td{min-width:0;overflow-wrap:anywhere;word-break:break-word}
 /* larguras por tabela (somam 100%) */
