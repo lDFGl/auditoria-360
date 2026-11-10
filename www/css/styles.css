@@ -170,3 +170,7 @@
  #reportContent .t-moradia th:nth-child(4){width:25%}
  #reportContent .t-moradia th:nth-child(5){width:25%}
 }
+
+/* Ação de finalização sempre visível na pré-visualização de todos os módulos */
+#reportFinalize{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center;justify-content:center;min-height:40px;white-space:nowrap}
+#reportFinalize:disabled{opacity:.72!important;cursor:wait}
