@@ -113,3 +113,6 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
 test("tela inicial apresenta registro detalhado de todos os planos PI e NI",()=>{assert.match(html,/id="actionPlanRegister"/);assert.match(app,/function renderActionPlanRegister/);assert.match(app,/Plano de ação PI \/ NI/);assert.match(app,/plan-register-grid/);});
 test("finalização abre automaticamente a impressão do relatório após confirmar salvamento",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await waitForReportAssets\(\$\("#reportContent"\)\);window\.print\(\)/);});
+
+
+test("finalização gera e arquiva automaticamente o PDF sem anexação manual",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/async function generateAndArchivePdf/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/PDF gerado e arquivado automaticamente/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
