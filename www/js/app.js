@@ -321,7 +321,35 @@ $("#captureGps").addEventListener("click",()=>{
 $("#inspectionForm").addEventListener("submit",async e=>{e.preventDefault();if(!$("#inspectionForm").reportValidity())return;if(state.sector.mode==="moradia"){if(!formData().colaborador?.trim()){alert("Informe o colaborador recebedor para concluir a vistoria FG Moradia.");$('input[name="colaborador"]').focus();return;}const pending=Array.from(document.querySelectorAll("[data-field=status]")).filter(x=>!x.value).length;if(pending&&!confirm("Existem "+pending+" itens sem condição registrada. Deseja gerar o relatório mesmo assim?"))return;}else if(Object.keys(state.ratings).length!==state.sector.items.length){if(!confirm("Existem critérios sem classificação. Deseja gerar o relatório mesmo assim?"))return;}try{const html=await reportHtml(formData());await showReportInPage(html);const saved=saveInspectionHistory();if(saved){renderDashboard();$("#dashboardUpdated").textContent="Inspeção registrada em "+new Date().toLocaleString("pt-BR")+". Histórico local confirmado."; }else{$("#dashboardUpdated").textContent="Não foi possível confirmar a gravação do histórico neste navegador.";alert("O relatório foi preparado, mas o histórico não pôde ser gravado. Verifique o armazenamento do navegador.");} }catch(err){console.error("Falha ao preparar relatório:",err);alert("Não foi possível preparar o relatório: "+(err?.message||err));}});
 $("#saveDraft").addEventListener("click",()=>{if(saveCurrentDraft()){alert("Rascunho salvo neste dispositivo. As fotos permanecem vinculadas a esta inspeção.");}else{alert("Não foi possível salvar o rascunho neste navegador.");}});
 $("#dashboardModule").addEventListener("change",renderDashboard);$("#dashboardPeriod").addEventListener("change",renderDashboard);
-$("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAssets($("#reportContent"));}catch(err){console.warn("Não foi possível aguardar todos os recursos do relatório:",err);}requestAnimationFrame(()=>window.print());});$("#reportFinalize").addEventListener("click",async()=>{if(!confirm("Finalizar este relatório? O PDF será gerado e arquivado automaticamente neste navegador, junto com a data e hora da finalização."))return;const button=$("#reportFinalize");button.disabled=true;button.textContent="Gerando PDF…";let pdfName=null;try{pdfName=await generateAndArchivePdf(state.inspectionId);}catch(err){console.error("Falha ao gerar PDF automaticamente:",err);button.disabled=false;button.textContent="Finalizar relatório";alert("Não foi possível gerar e arquivar o PDF automaticamente: "+(err?.message||err)+". O relatório não foi finalizado. Verifique o armazenamento do navegador e tente novamente.");return;}const finalizedAt=new Date().toISOString();if(!saveCurrentDraft("finalizado",finalizedAt)){button.disabled=false;button.textContent="Finalizar relatório";alert("O PDF foi gerado, mas não foi possível salvar os dados da inspeção. O relatório não foi finalizado.");return;}if(!updateHistoryStatus(state.inspectionId,"finalizado",finalizedAt)){button.disabled=false;button.textContent="Finalizar relatório";alert("O PDF foi arquivado, mas não foi possível confirmar a finalização no histórico. Tente novamente.");return;}renderDashboard();renderCompletedInspections();$("#dashboardUpdated").textContent="Relatório finalizado em "+new Date(finalizedAt).toLocaleString("pt-BR")+". PDF gerado e arquivado: "+pdfName;closeReportViewer();renderHome();renderFinalizedReports();renderCompletedInspections();alert("Relatório finalizado. O PDF "+pdfName+" foi gerado e arquivado automaticamente. Acesse Relatórios finalizados para baixá-lo.");});$("#reportClose").addEventListener("click",closeReportViewer);$("#clearDashboard").addEventListener("click",()=>{if(confirm("Excluir todo o histórico de indicadores salvo neste navegador? Essa ação não poderá ser desfeita.")){localStorage.removeItem(HISTORY_KEY);renderDashboard();renderFinalizedReports();renderCompletedInspections();}});window.addEventListener("storage",e=>{if(e.key===HISTORY_KEY)renderDashboard();});
+$("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAssets($("#reportContent"));}catch(err){console.warn("Não foi possível aguardar todos os recursos do relatório:",err);}requestAnimationFrame(()=>window.print());});$("#reportFinalize").addEventListener("click",async()=>{
+ const button=$("#reportFinalize");
+ if(button.dataset.processing==="true")return;
+ if(!confirm("Finalizar este relatório? O PDF será gerado e arquivado automaticamente neste navegador, junto com a data e hora da finalização."))return;
+ button.dataset.processing="true";
+ button.disabled=true;
+ button.textContent="Gerando PDF…";
+ try{
+  const pdfName=await generateAndArchivePdf(state.inspectionId);
+  const finalizedAt=new Date().toISOString();
+  if(!saveCurrentDraft("finalizado",finalizedAt))throw new Error("O PDF foi gerado, mas não foi possível salvar os dados da inspeção neste navegador.");
+  if(!updateHistoryStatus(state.inspectionId,"finalizado",finalizedAt))throw new Error("O PDF foi arquivado, mas não foi possível confirmar a finalização no histórico.");
+  renderDashboard();
+  renderCompletedInspections();
+  $("#dashboardUpdated").textContent="Relatório finalizado em "+new Date(finalizedAt).toLocaleString("pt-BR")+". PDF gerado e arquivado: "+pdfName;
+  closeReportViewer();
+  renderHome();
+  renderFinalizedReports();
+  renderCompletedInspections();
+  alert("Relatório finalizado. O PDF "+pdfName+" foi gerado e arquivado automaticamente. Acesse Relatórios finalizados para baixá-lo.");
+ }catch(err){
+  console.error("Falha ao finalizar relatório:",err);
+  alert("Não foi possível finalizar o relatório: "+(err?.message||err)+". O botão foi reativado; confira o armazenamento do navegador e tente novamente.");
+ }finally{
+  button.disabled=false;
+  button.textContent="Finalizar relatório";
+  delete button.dataset.processing;
+ }
+});$("#reportClose").addEventListener("click",closeReportViewer);$("#clearDashboard").addEventListener("click",()=>{if(confirm("Excluir todo o histórico de indicadores salvo neste navegador? Essa ação não poderá ser desfeita.")){localStorage.removeItem(HISTORY_KEY);renderDashboard();renderFinalizedReports();renderCompletedInspections();}});window.addEventListener("storage",e=>{if(e.key===HISTORY_KEY)renderDashboard();});
 $("#backHome").addEventListener("click",renderHome);$("#homeLink").addEventListener("click",e=>{e.preventDefault();renderHome()});migrateLegacyDrafts();migrateLegacyPhotos();requestStoragePersistence();renderHome();renderFinalizedReports();renderCompletedInspections();
 
 /* Fase 3: identificação documental, índice de evidências e anexos técnicos. */
@@ -346,11 +374,30 @@ async function saveReportPdf(id,file,name){
  return filename;
 }
 async function generateAndArchivePdf(id){
- if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível.");
- await waitForReportAssets($("#reportContent"));
+ if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível. Atualize a página e tente novamente.");
+ const content=$("#reportContent");
+ if(!content||!content.innerHTML.trim())throw new Error("O conteúdo do relatório não está disponível para geração do PDF.");
+ await waitForReportAssets(content);
+ const isMoradia=state.sector?.mode==="moradia";
  const filename=((state.reportCode||"Relatorio")+"_"+String(formData().obra||"Inspecao").replace(/[^a-z0-9_-]+/gi,"_")+".pdf");
- const blob=await window.html2pdf().set({margin:[9,9,12,9],filename,image:{type:"jpeg",quality:0.96},html2canvas:{scale:1.5,useCORS:true,backgroundColor:"#ffffff",scrollX:0,scrollY:0,onclone:(clonedDoc)=>{const content=clonedDoc.getElementById("reportContent");if(content){content.style.width="100%";content.style.maxWidth="100%";content.style.minWidth="0";content.style.margin="0";content.style.boxSizing="border-box";content.style.overflow="visible";content.querySelectorAll("table").forEach(table=>{table.style.width="100%";table.style.maxWidth="100%";table.style.tableLayout="fixed";});content.querySelectorAll("th,td").forEach(cell=>{cell.style.minWidth="0";cell.style.overflowWrap="anywhere";});}}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css","legacy"]}}).from($("#reportContent")).outputPdf("blob");
- if(!blob||blob.type!=="application/pdf"||blob.size<1000)throw new Error("O PDF gerado está vazio ou inválido.");
+ const worker=window.html2pdf().set({
+  margin:[9,9,12,9],
+  filename,
+  image:{type:"jpeg",quality:isMoradia?0.9:0.96},
+  html2canvas:{
+   scale:isMoradia?1:1.5,
+   useCORS:true,
+   backgroundColor:"#ffffff",
+   scrollX:0,
+   scrollY:0,
+   windowWidth:Math.max(content.scrollWidth,content.clientWidth),
+   logging:false
+  },
+  jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},
+  pagebreak:{mode:["css","legacy"],avoid:["tr","figure","h2","h3"]}
+ }).from(content);
+ const blob=await worker.outputPdf("blob");
+ if(!blob||blob.type!=="application/pdf"||blob.size<1000)throw new Error("O gerador retornou um PDF vazio ou inválido.");
  return await saveReportPdf(id,blob,filename);
 }
 async function readReportPdf(id){
