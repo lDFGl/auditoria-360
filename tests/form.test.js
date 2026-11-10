@@ -116,3 +116,5 @@ test("finalização gera e arquiva o PDF automaticamente antes de concluir",()=>
 
 
 test("finalização gera e arquiva automaticamente o PDF sem anexação manual",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/async function generateAndArchivePdf/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/PDF gerado e arquivado automaticamente/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
+
+test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.match(app,/listDrafts\(sector\.id\)\.filter\(d=>d\.status!=="finalizado"\)/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderActionPlanRegister\(\)/);});
