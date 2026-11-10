@@ -327,18 +327,16 @@ $("#reportPrint").addEventListener("click",async()=>{try{await waitForReportAsse
  button.disabled=true;
  button.textContent="Gerando PDF…";
  try{
-  const pdfName=await generateAndArchivePdf(state.inspectionId);
   const finalizedAt=new Date().toISOString();
-  if(!saveCurrentDraft("finalizado",finalizedAt))throw new Error("O PDF foi gerado, mas não foi possível salvar os dados da inspeção neste navegador.");
-  if(!updateHistoryStatus(state.inspectionId,"finalizado",finalizedAt))throw new Error("O PDF foi arquivado, mas não foi possível confirmar a finalização no histórico.");
+  if(!saveCurrentDraft("finalizado",finalizedAt))throw new Error("Não foi possível salvar os dados da inspeção neste navegador.");
+  if(!updateHistoryStatus(state.inspectionId,"finalizado",finalizedAt))throw new Error("Não foi possível confirmar a finalização no histórico.");
   renderDashboard();
   renderCompletedInspections();
-  $("#dashboardUpdated").textContent="Relatório finalizado em "+new Date(finalizedAt).toLocaleString("pt-BR")+". PDF gerado e arquivado: "+pdfName;
-  closeReportViewer();
-  renderHome();
+  $("#dashboardUpdated").textContent="Relatório finalizado em "+new Date(finalizedAt).toLocaleString("pt-BR")+". Utilize a janela de impressão para salvar o PDF.";
+  await waitForReportAssets($("#reportContent"));
+  await new Promise(resolve=>requestAnimationFrame(()=>{window.print();resolve();}));
   renderFinalizedReports();
-  renderCompletedInspections();
-  alert("Relatório finalizado. O PDF "+pdfName+" foi gerado e arquivado automaticamente. Acesse Relatórios finalizados para baixá-lo.");
+  alert("Relatório finalizado. Na janela de impressão do navegador, selecione “Salvar como PDF” e escolha onde guardar o arquivo. O relatório permanece aberto para nova impressão, se necessário.");
  }catch(err){
   console.error("Falha ao finalizar relatório:",err);
   alert("Não foi possível finalizar o relatório: "+(err?.message||err)+". O botão foi reativado; confira o armazenamento do navegador e tente novamente.");
@@ -410,7 +408,7 @@ async function renderFinalizedReports(){
  const host=$("#finalizedReports");if(!host)return;
  const records=readHistory().filter(x=>x.status==="finalizado").sort((a,b)=>String(b.finalizedAt||"").localeCompare(String(a.finalizedAt||"")));
  if(!records.length){host.innerHTML='<p class="muted">Nenhum relatório finalizado neste navegador.</p>';return;}
- host.innerHTML=records.map(x=>'<article class="archive-item"><div><strong>'+esc(x.reportCode||"Sem código")+'</strong><span>'+esc(x.sectorName||x.sector)+' · '+esc(x.obra||"Obra não informada")+'</span><small>Finalizado: '+esc(x.finalizedAt?new Date(x.finalizedAt).toLocaleString("pt-BR"):"—")+'</small><small>'+(x.pdfName?"PDF gerado e arquivado automaticamente: "+esc(x.pdfName):"PDF não disponível — registro anterior à geração automática")+'</small></div><div class="archive-actions"><button type="button" data-pdf-download="'+esc(x.id)+'" '+(x.pdfName?"":"disabled")+'>Baixar PDF</button></div></article>').join("");
+ host.innerHTML=records.map(x=>'<article class="archive-item"><div><strong>'+esc(x.reportCode||"Sem código")+'</strong><span>'+esc(x.sectorName||x.sector)+' · '+esc(x.obra||"Obra não informada")+'</span><small>Finalizado: '+esc(x.finalizedAt?new Date(x.finalizedAt).toLocaleString("pt-BR"):"—")+'</small><small>'+(x.pdfName?"PDF arquivado neste navegador: "+esc(x.pdfName):"PDF salvo pelo usuário na janela de impressão do navegador; não fica armazenado no arquivo local do painel.")+'</small></div><div class="archive-actions"><button type="button" data-pdf-download="'+esc(x.id)+'" '+(x.pdfName?"":"disabled")+'>Baixar PDF</button></div></article>').join("");
  host.querySelectorAll("[data-pdf-download]").forEach(button=>button.addEventListener("click",async()=>{try{const saved=await readReportPdf(button.dataset.pdfDownload);if(!saved?.blob){alert("O arquivo PDF não está disponível neste navegador.");return;}const url=URL.createObjectURL(saved.blob),a=document.createElement("a");a.href=url;a.download=saved.name||"relatorio.pdf";a.click();setTimeout(()=>URL.revokeObjectURL(url),1500);}catch(e){alert("Não foi possível baixar o PDF: "+e.message);}}));
 }
 async function showReportInPage(html) {
