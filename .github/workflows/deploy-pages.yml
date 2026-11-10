@@ -41,7 +41,6 @@ jobs:
           test -s www/css/styles.css
           test -s www/js/app.js
           test -s www/js/score.js
-          test -s www/js/vendor/html2pdf.bundle.min.js
           test -s www/manifest.webmanifest
           test -s www/sw.js
           test -s www/icons/icon-maskable.svg
