@@ -246,3 +246,16 @@ body[data-theme="dark"] .report-viewer-toolbar{background:#193e48;border-color:#
 body[data-theme="dark"] .report-viewer-toolbar strong{color:#a8d8de}
 body[data-theme="dark"] .report-viewer-toolbar span{color:#c0d0d3}
 @media(max-width:520px){.theme-toggle{margin-left:8px;padding:8px 9px;font-size:10px}.topbar{gap:8px}.top-meta{display:none}}
+
+
+/* Modo claro: fundo institucional escuro, com painel gerencial branco */
+body[data-theme="light"]{--bg:#102f37;background:var(--bg);color:#e5eff1}
+body[data-theme="light"] .shell{color:#e5eff1}
+body[data-theme="light"] .section-heading h2,
+body[data-theme="light"] .inspection-head h1,
+body[data-theme="light"] .checklist-toolbar h3{color:#e5eff1}
+body[data-theme="light"] .section-heading>.muted,
+body[data-theme="light"] .inspection-head>div>p,
+body[data-theme="light"] .toolbar .muted,
+body[data-theme="light"] .checklist-toolbar p{color:#a9bdc2}
+body[data-theme="light"] .dashboard{background:#fff;border-color:#dfe8e9;color:#17343b}
