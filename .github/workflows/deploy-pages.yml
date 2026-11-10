@@ -21,7 +21,6 @@ concurrency:
 
 jobs:
   validate:
-    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
@@ -48,6 +47,7 @@ jobs:
           test -s www/icons/icon-maskable.svg
           node -e 'JSON.parse(require("fs").readFileSync("www/manifest.webmanifest","utf8"))'
   build:
+    needs: validate
     runs-on: ubuntu-latest
     steps:
       - name: Baixar repositório
