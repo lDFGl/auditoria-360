@@ -106,16 +106,16 @@ test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()
 
 
 test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(app,/reportCode:state\.reportCode/);});
-test("arquivo local permite baixar PDFs gerados automaticamente de relatórios finalizados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(app,/function saveReportPdf/);assert.match(app,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
+test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(app,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
 test("código de identificação aparece no cabeçalho dos dois modelos de relatório",()=>{assert.match(app,/class="report-code"/);assert.match(app,/esc\(state\.reportCode\)/);});
 
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
 test("tela inicial apresenta checklists realizados com planos PI/NI vinculados",()=>{assert.match(html,/id="completedInspections"/);assert.match(app,/function renderCompletedInspections/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
-test("finalização gera e arquiva o PDF automaticamente antes de concluir",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId\)/);assert.match(app,/PDF gerado e arquivado/);});
+test("finalização usa a impressão nativa do navegador",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/window\.print\(\)/);assert.doesNotMatch(app,/await generateAndArchivePdf\(state\.inspectionId\)/);});
 
 
-test("finalização gera e arquiva automaticamente o PDF sem anexação manual",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/async function generateAndArchivePdf/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/PDF gerado e arquivado automaticamente/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
+test("o aplicativo não carrega nem utiliza gerador de PDF por captura",()=>{assert.doesNotMatch(html,/html2pdf\.bundle/);assert.doesNotMatch(app,/html2pdf|outputPdf\("blob"\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
 test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
