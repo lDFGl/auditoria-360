@@ -17,7 +17,7 @@ test("impressão aguarda recursos do relatório antes de abrir diálogo do naveg
 });
 
 test("pré-visualização oferece ação explícita de finalizar relatório",()=>{
- assert.match(html,/id="reportFinalize">Finalizar relatório/);
+ assert.match(html,/id="reportFinalize">Finalizar e gerar PDF/);
  assert.match(app,/\$\("#reportFinalize"\)\.addEventListener\("click"/);
  assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);
  assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);
