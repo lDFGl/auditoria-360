@@ -109,7 +109,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
       await openModule(page, "fg-moradia");
       await fillIdentification(page, true);
       assert.equal(await page.locator("[data-q]").count(), 38);
-      assert.equal(await page.locator("#scoreValue").closest(".score-card").evaluate(el => el.classList.contains("hidden")), true);
+      assert.equal(await page.locator("#scoreValue").evaluate(el => el.closest(".score-card").classList.contains("hidden")), true);
       assert.match(await page.locator("#sectorCount").textContent(), /sem pontuação/);
       await page.locator('[data-q="0"] [data-field="status"]').selectOption("Conforme");
       await page.locator('[data-q="1"] [data-field="status"]').selectOption("Ajuste necessário");
