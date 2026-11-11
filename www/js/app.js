@@ -704,16 +704,31 @@ async function generateAndArchivePdfVersion(id, model = 'complete') {
 
     // A conversão deve partir do elemento do relatório; set() isolado não gera um PDF.
     const pdfPromise = window.html2pdf().set({
-      margin: [9, 9, 12, 9],
+      margin: [10, 10, 12, 10],
       filename,
-      image: { type: 'jpeg', quality: 0.82 },
+      // PNG sem perdas e captura em resolução próxima de 300 dpi para preservar textos pequenos.
+      image: { type: 'png' },
       html2canvas: {
-        scale: 1.1, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
-        scrollX: 0, scrollY: 0, logging: false,
+        scale: 3, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+        scrollX: 0, scrollY: 0, logging: false, windowWidth: 1200,
         onclone: clonedDoc => {
           const clonedContent = clonedDoc.getElementById('reportContent');
           if (!clonedContent) return;
-          Object.assign(clonedContent.style, { width: '725px', maxWidth: '725px', minWidth: '0', margin: '0', padding: '0', boxSizing: 'border-box', overflow: 'visible' });
+          Object.assign(clonedContent.style, { width: '725px', maxWidth: '725px', minWidth: '725px', margin: '0 auto', padding: '0', boxSizing: 'border-box', overflow: 'visible', background: '#fff' });
+          const printFix = clonedDoc.createElement('style');
+          printFix.textContent = `
+            @page { size: A4 portrait; margin: 0; }
+            #reportContent, #reportContent body { width: 725px !important; max-width: 725px !important; }
+            #reportContent .pdf-page { min-height: 0 !important; height: auto !important; box-sizing: border-box !important; break-after: page; page-break-after: always; }
+            #reportContent .pdf-page:last-child, #reportContent .exec-page:last-child { break-after: auto; page-break-after: auto; }
+            #reportContent .exec-page { min-height: 0 !important; height: auto !important; box-sizing: border-box !important; break-after: page; page-break-after: always; }
+            #reportContent table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
+            #reportContent thead { display: table-header-group; }
+            #reportContent tr, #reportContent figure, #reportContent .pdf-photo, #reportContent .exec-photo, #reportContent .exec-plan { break-inside: avoid !important; page-break-inside: avoid !important; }
+            #reportContent th, #reportContent td { min-width: 0 !important; overflow-wrap: anywhere !important; word-break: break-word !important; }
+            #reportContent img { max-width: 100%; }
+          `;
+          clonedDoc.head.appendChild(printFix);
           clonedContent.querySelectorAll('table').forEach(table => {
             table.style.width = '100%'; table.style.maxWidth = '100%'; table.style.tableLayout = 'fixed';
           });
@@ -722,8 +737,8 @@ async function generateAndArchivePdfVersion(id, model = 'complete') {
           });
         }
       },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-      pagebreak: { mode: ['css'] }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true, precision: 16 },
+      pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', 'figure', '.pdf-photo', '.exec-photo', '.exec-plan'] }
     }).from(content).toPdf().get('pdf').then(pdf => {
       if (selectedModel === 'complete') {
         const total = pdf.internal.getNumberOfPages(), width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
