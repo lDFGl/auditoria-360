@@ -115,7 +115,7 @@ test("histórico de inspeções é uma tela separada do dashboard",()=>{assert.m
 test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId,model\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename,window\.__a360PdfModel\|\|"complete"\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
 
 
-test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
+test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/toPdf\(\)\.get\("pdf"\)/);assert.match(app,/pdf\.output\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
 test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
