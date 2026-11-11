@@ -29,12 +29,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Verificar JavaScript e testes
+      - name: Instalar dependências de teste
+        run: npm install --no-audit --no-fund
+      - name: Instalar Chromium para testes de PDF
+        run: npx playwright install --with-deps chromium
+      - name: Verificar JavaScript e executar testes
         run: |
           node --check www/js/app.js
           node --check www/js/score.js
           node --check www/sw.js
-          node --test tests/*.test.js
+          npm test
       - name: Verificar arquivos essenciais e dependências offline
         run: |
           test -s www/index.html

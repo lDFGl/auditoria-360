@@ -29,7 +29,8 @@ Os cinco módulos de verificação utilizam 20 critérios iniciais, com classifi
 - Recuperação das fotos junto ao rascunho, desde que os dados locais do navegador não tenham sido apagados.
 - No FG Moradia, o colaborador recebedor é obrigatório para emissão do relatório.
 - Ao alterar a quantidade de quartos, o sistema solicita confirmação e reinicia os registros e as fotos da vistoria para evitar associação incorreta de evidências.
-- Relatório preparado para impressão ou salvamento em PDF pelo navegador.
+- Geração nativa de PDF A4 com jsPDF 2.5.2, texto vetorial, paginação, cabeçalho/rodapé e evidências fotográficas associadas aos critérios.
+- Disponibilização dos modelos PDF Completo e PDF Executivo, ambos arquivados localmente no IndexedDB.
 - PWA com cache versionado, atualização controlada e fallback offline para os arquivos da interface.
 
 ## Estrutura
@@ -99,7 +100,7 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - Anexo consolidado das referências técnicas e documentais citadas no checklist, sem declarar validação automática de vigência ou aplicabilidade.
 - Paginação e rodapé próprios para impressão A4, com repetição do cabeçalho das tabelas e proteção contra quebra de linhas e fotografias.
 - Aviso de integridade esclarece que o hash não substitui assinatura digital nem registro externo confiável.
-- Versão do aplicativo: **2.3.0**.
+- Versão do aplicativo: **2.6.0**.
 
 As melhorias de relatório não alteram a metodologia de pontuação, a cobertura, os planos de ação, a criticidade ou os registros históricos. O código legível organiza a identificação, mas permanece local e não representa protocolo central corporativo.
 
@@ -109,7 +110,21 @@ As melhorias de relatório não alteram a metodologia de pontuação, a cobertur
 - O menu **Histórico de inspeções** concentra os registros concluídos, com consulta dos dados gerais, critérios, evidências fotográficas e planos de ação.
 - Cada registro permite abrir a inspeção, baixar o PDF arquivado ou excluir os dados locais associados. A exclusão exige confirmação e remove o registro, rascunho, evidências e PDF daquele identificador.
 - As evidências podem ser ampliadas em visualizador fullscreen, com navegação entre imagens do mesmo critério, fechamento por Esc ou clique no fundo.
-- Na finalização, é possível escolher **PDF Executivo** ou **PDF Completo**. O executivo consolida resumo e indicadores, achados PI/NI, planos de ação e galeria fotográfica. O completo mantém o detalhamento operacional, com cabeçalho, rodapé e evidências agrupadas por critério.
+- Na finalização, é possível escolher **PDF Executivo** ou **PDF Completo**. O executivo consolida resumo e indicadores, achados PI/NI, planos de ação e galeria fotográfica. No FG Moradia, apresenta pendências qualitativas sem classificações PI/NI ou cálculo de conformidade. O completo mantém o detalhamento operacional, com cabeçalho, rodapé e evidências agrupadas por critério.
+- A biblioteca jsPDF 2.5.2 é distribuída localmente em `www/js/vendor/jspdf.umd.min.js`, acompanhada da licença MIT em `www/js/vendor/jspdf.LICENSE.txt`, permitindo gerar PDFs sem CDN.
 - O dashboard prioriza indicadores de inspeções realizadas, conformidade média, planos em aberto, críticos em aberto e ações vencidas.
 
 Os dados continuam locais ao navegador/dispositivo. A tela de histórico não representa uma base corporativa compartilhada, sincronização entre usuários ou backup central. A exclusão no histórico é permanente para os dados locais daquele registro.
+
+
+## Testes automatizados
+
+Requer Node.js 22. Execute:
+
+```bash
+npm install
+npx playwright install chromium
+npm test
+```
+
+A suíte mantém os testes funcionais existentes e inclui testes de integração em navegador para PDFs efetivamente gerados. Os testes extraem texto com PDF.js e verificam conteúdo, acentuação, paginação, consistência entre modelos, módulos e evidências. Eles não substituem uma revisão visual humana de cada relatório.

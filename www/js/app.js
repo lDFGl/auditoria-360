@@ -761,10 +761,16 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
     wrapped("Metodologia: IM = 1,00; OM = 1,00; PI = 0,65; NI = 0,00; NA não contabilizado. A cobertura mede a abrangência do checklist e não altera o percentual de conformidade.", usable, 7, "normal", colors.muted);
   }
   function criterionTitle(index, title, reference, rating, observation) {
-    ensure(14);
+    const titleText = title || "Critério " + (index + 1);
+    const titleLines = doc.splitTextToSize(String(titleText), usable - 15);
+    const titleLineHeight = 8.5 * 0.42 + 1.1;
+    const maxKeepHeight = page.height - page.top - page.bottom;
+    // Reserva o bloco completo do título antes de desenhar o marcador.
+    // Assim, marcador e título não se separam quando o texto quebra linhas.
+    ensure(Math.max(14, Math.min(maxKeepHeight, titleLines.length * titleLineHeight + 2)));
     doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y - 2, 9, 8, 1, 1, "F");
     setText(colors.brand, 8, "bold"); doc.text(String(index + 1), page.left + 4.5, y + 3.3, { align: "center" });
-    wrapped(title || "Critério " + (index + 1), usable - 15, 8.5, "bold", colors.ink, page.left + 12);
+    wrapped(titleText, usable - 15, 8.5, "bold", colors.ink, page.left + 12);
     if (reference) wrapped("Referência: " + reference, usable - 15, 6.8, "italic", colors.muted, page.left + 12);
     wrapped("CLASSIFICAÇÃO: " + (rating || "—"), usable - 15, 7, "bold", colors.brand, page.left + 12);
     wrapped("OBSERVAÇÕES: " + (observation || "Sem observações registradas."), usable - 15, 7.5, "normal", colors.ink, page.left + 12);
@@ -828,13 +834,15 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
   metadata();
   if (selectedModel === "executive") {
     summary();
-    section("PANORAMA DAS AÇÕES PRIORITÁRIAS");
-    const critical = isMoradia ? [] : sector.items.map((item, index) => ({ item, index, plan: state.actionPlans[index] })).filter(x => ["PI", "NI"].includes(state.ratings[x.index]));
-    if (!critical.length) wrapped("Não há critérios PI/NI com plano de ação nesta inspeção.", usable, 8);
-    for (const entry of critical) {
-      actionPlan(entry.index, entry.item, entry.plan || {});
-      const photos = state.files[entry.index] || [];
-      if (photos.length) await addPhotos(photos, "Evidência do critério " + (entry.index + 1));
+    if (!isMoradia) {
+      section("PANORAMA DAS AÇÕES PRIORITÁRIAS");
+      const critical = sector.items.map((item, index) => ({ item, index, plan: state.actionPlans[index] })).filter(x => ["PI", "NI"].includes(state.ratings[x.index]));
+      if (!critical.length) wrapped("Não há critérios PI/NI com plano de ação nesta inspeção.", usable, 8);
+      for (const entry of critical) {
+        actionPlan(entry.index, entry.item, entry.plan || {});
+        const photos = state.files[entry.index] || [];
+        if (photos.length) await addPhotos(photos, "Evidência do critério " + (entry.index + 1));
+      }
     }
     if (isMoradia) {
       section("PENDÊNCIAS DA VISTORIA");
