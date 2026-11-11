@@ -687,81 +687,268 @@ async function generateAndArchivePdf(id, model = 'complete') {
 
 
 /* Gerador versionado explícito: evita colisão com declarações legadas homônimas. */
-async function generateAndArchivePdfVersion(id, model = 'complete') {
-  if (typeof window.html2pdf !== 'function') throw new Error('Biblioteca local de geração de PDF indisponível.');
-  const content = $('#reportContent');
-  if (!content) throw new Error('Área de relatório indisponível.');
-  const selectedModel = model || 'complete';
-  const previous = content.innerHTML;
-  let timeoutId;
+async 
+async function pdfImageData(src) {
+  if (!src) return null;
+  if (/^data:image\//i.test(src)) return src;
   try {
-    content.innerHTML = selectedModel === 'executive' ? buildExecutiveReportHtml(formData()) : buildStandardReportHtml(formData());
-    content.classList.add('pdf-capturing');
-    await waitForReportAssets(content);
-    const safeWork = String(formData().obra || 'Inspecao').replace(/[^a-zA-Z0-9_ -]/g, '').trim().replace(/\s+/g, '_').slice(0, 40) || 'Inspecao';
-    const suffix = selectedModel === 'executive' ? '_EXECUTIVO' : '_COMPLETO';
-    const filename = ((state.reportCode || 'Relatorio') + '_' + safeWork + suffix + '.pdf').replace(/_+/g, '_');
+    const response = await fetch(src);
+    if (!response.ok) return null;
+    const blob = await response.blob();
+    return await new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  } catch (error) { console.warn("Imagem não incluída no PDF:", error); return null; }
+}
 
-    // A conversão deve partir do elemento do relatório; set() isolado não gera um PDF.
-    const pdfPromise = window.html2pdf().set({
-      margin: [10, 10, 12, 10],
-      filename,
-      // PNG sem perdas e captura em resolução próxima de 300 dpi para preservar textos pequenos.
-      image: { type: 'png' },
-      html2canvas: {
-        scale: 2.5, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
-        scrollX: 0, scrollY: 0, logging: false, windowWidth: 1200,
-        onclone: clonedDoc => {
-          const clonedContent = clonedDoc.getElementById('reportContent');
-          if (!clonedContent) return;
-          Object.assign(clonedContent.style, { width: '725px', maxWidth: '725px', minWidth: '725px', margin: '0 auto', padding: '0', boxSizing: 'border-box', overflow: 'visible', background: '#fff' });
-          const printFix = clonedDoc.createElement('style');
-          printFix.textContent = `
-            @page { size: A4 portrait; margin: 0; }
-            #reportContent, #reportContent body { width: 725px !important; max-width: 725px !important; }
-            #reportContent .pdf-page { min-height: 0 !important; height: auto !important; box-sizing: border-box !important; break-after: page; page-break-after: always; }
-            #reportContent .pdf-page:last-child, #reportContent .exec-page:last-child { break-after: auto; page-break-after: auto; }
-            #reportContent .exec-page { min-height: 0 !important; height: auto !important; box-sizing: border-box !important; break-after: page; page-break-after: always; }
-            #reportContent table { width: 100% !important; max-width: 100% !important; table-layout: fixed !important; border-collapse: collapse !important; }
-            #reportContent thead { display: table-header-group; }
-            #reportContent tr, #reportContent figure, #reportContent .pdf-photo, #reportContent .exec-photo, #reportContent .exec-plan { break-inside: avoid !important; page-break-inside: avoid !important; }
-            #reportContent th, #reportContent td { min-width: 0 !important; overflow-wrap: anywhere !important; word-break: break-word !important; }
-            #reportContent img { max-width: 100%; }
-          `;
-          clonedDoc.head.appendChild(printFix);
-          clonedContent.querySelectorAll('table').forEach(table => {
-            table.style.width = '100%'; table.style.maxWidth = '100%'; table.style.tableLayout = 'fixed';
-          });
-          clonedContent.querySelectorAll('th,td').forEach(cell => {
-            cell.style.minWidth = '0'; cell.style.overflowWrap = 'anywhere'; cell.style.wordBreak = 'break-word';
-          });
-        }
-      },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true, precision: 16 },
-      pagebreak: { mode: ['css'], avoid: ['tr', 'figure', '.pdf-photo', '.exec-photo', '.exec-plan'] }
-    }).from(content).toPdf().get('pdf').then(pdf => {
-      if (selectedModel === 'complete') {
-        const total = pdf.internal.getNumberOfPages(), width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
-        for (let page = 1; page <= total; page++) {
-          pdf.setPage(page); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7); pdf.setTextColor(19, 92, 108);
-          pdf.text('AUDITORIA 360 · ' + (state.reportCode || ''), width / 2, 6, { align: 'center' });
-          pdf.setDrawColor(210, 220, 222); pdf.line(10, 8, width - 10, 8); pdf.line(10, height - 9, width - 10, height - 9);
-          pdf.setTextColor(100, 115, 120);
-          pdf.text('AUDITORIA 360 · ' + (state.reportCode || '') + ' · Página ' + page + ' de ' + total, width / 2, height - 5, { align: 'center' });
+async function generateAndArchivePdfVersion(id, model = "complete") {
+  const JsPDF = window.jspdf && window.jspdf.jsPDF;
+  if (typeof JsPDF !== "function") throw new Error("Biblioteca local jsPDF indisponível.");
+  const selectedModel = model === "executive" ? "executive" : "complete";
+  const form = formData();
+  const sector = state.sector || { name: "Inspeção", items: [] };
+  const isMoradia = sector.mode === "moradia";
+  const score = isMoradia ? null : AuditoriaScore.calculateScore(state.ratings, sector.items.length);
+  const coverage = isMoradia ? null : AuditoriaScore.calculateCoverage(state.ratings, sector.items.length);
+  const counts = score && score.counts ? score.counts : { im: 0, om: 0, pi: 0, ni: 0, na: 0 };
+  const doc = new JsPDF({ orientation: "portrait", unit: "mm", format: "a4", compress: true, precision: 16 });
+  const page = { width: 210, height: 297, left: 14, right: 14, top: 30, bottom: 17 };
+  const usable = page.width - page.left - page.right;
+  let y = page.top;
+  let pageNumber = 1;
+  const logo = await pdfImageData(new URL("logo-fg.png", location.href).href);
+  const colors = { brand: [19, 92, 108], ink: [34, 52, 58], muted: [91, 112, 119], line: [215, 226, 229], pale: [239, 246, 247], white: [255, 255, 255] };
+  const reportCode = state.reportCode || "—";
+  const safeWork = String(form.obra || "Inspecao").replace(/[^a-zA-Z0-9_ -]/g, "").trim().replace(/\s+/g, "_").slice(0, 40) || "Inspecao";
+  const filename = ((reportCode || "Relatorio") + "_" + safeWork + (selectedModel === "executive" ? "_EXECUTIVO" : "_COMPLETO") + ".pdf").replace(/_+/g, "_");
+
+  function setText(color, size, style) {
+    doc.setTextColor(...color); doc.setFont("helvetica", style || "normal"); doc.setFontSize(size);
+  }
+  function newPage() { doc.addPage("a4", "portrait"); pageNumber++; y = page.top; drawHeader(); }
+  function ensure(height) { if (y + height > page.height - page.bottom) newPage(); }
+  function drawHeader() {
+    doc.setFillColor(...colors.white); doc.rect(0, 0, page.width, 25, "F");
+    if (logo) doc.addImage(logo, "PNG", page.left, 5, 28, 14, undefined, "FAST");
+    setText(colors.brand, 12, "bold");
+    doc.text("AUDITORIA 360", logo ? page.left + 33 : page.left, 11);
+    setText(colors.muted, 7, "normal");
+    doc.text(selectedModel === "executive" ? "RELATÓRIO EXECUTIVO" : "RELATÓRIO COMPLETO DE INSPEÇÃO", logo ? page.left + 33 : page.left, 16);
+    doc.setDrawColor(...colors.brand); doc.setLineWidth(0.7); doc.line(page.left, 23, page.width - page.right, 23);
+    setText(colors.brand, 8, "bold");
+    doc.text(reportCode, page.width - page.right, 12, { align: "right" });
+  }
+  function drawFooters() {
+    const total = doc.getNumberOfPages();
+    for (let p = 1; p <= total; p++) {
+      doc.setPage(p);
+      doc.setDrawColor(...colors.line); doc.setLineWidth(0.35);
+      doc.line(page.left, page.height - 12, page.width - page.right, page.height - 12);
+      setText(colors.muted, 7, "normal");
+      doc.text("AUDITORIA 360 · " + reportCode, page.left, page.height - 7);
+      doc.text("Página " + p + " de " + total, page.width / 2, page.height - 7, { align: "center" });
+      doc.text(new Date().toLocaleDateString("pt-BR"), page.width - page.right, page.height - 7, { align: "right" });
+    }
+  }
+  function section(title) {
+    ensure(13);
+    y += 3; doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y, usable, 8, 1.2, 1.2, "F");
+    setText(colors.brand, 9, "bold"); doc.text(title, page.left + 3, y + 5.4); y += 12;
+  }
+  function wrapped(text, width, size = 8, style = "normal", color = colors.ink) {
+    setText(color, size, style);
+    const lines = doc.splitTextToSize(String(text == null || text === "" ? "—" : text), width);
+    const lineHeight = size * 0.42 + 1.1;
+    doc.text(lines, page.left, y);
+    y += lines.length * lineHeight;
+    return lines.length * lineHeight;
+  }
+  function field(label, value, x, yy, width) {
+    setText(colors.muted, 6.5, "bold"); doc.text(String(label).toUpperCase(), x, yy);
+    setText(colors.ink, 8, "normal");
+    const lines = doc.splitTextToSize(String(value || "Não informado"), width);
+    doc.text(lines, x, yy + 4);
+    return Math.max(10, lines.length * 3.5 + 5);
+  }
+  function metadata() {
+    section("IDENTIFICAÇÃO DA INSPEÇÃO");
+    const fields = [
+      ["Setor / módulo", sector.name], ["Obra / empreendimento", form.obra],
+      ["Empresa", form.empresa], ["Data", form.data],
+      ["Responsável", form.responsavel], ["Local / pavimento", form.local],
+      ["Colaborador", form.colaborador], ["ID da inspeção", state.inspectionId]
+    ].filter(x => x[1] || x[0] !== "Colaborador");
+    const gap = 5, colW = (usable - gap) / 2;
+    for (let i = 0; i < fields.length; i += 2) {
+      const h1 = field(fields[i][0], fields[i][1], page.left, y, colW - 4);
+      const h2 = fields[i + 1] ? field(fields[i + 1][0], fields[i + 1][1], page.left + colW + gap, y, colW - 4) : 0;
+      y += Math.max(h1, h2) + 2;
+      ensure(12);
+    }
+    if (isMoradia) {
+      ensure(12);
+      wrapped("Quantidade de quartos: " + (state.roomCount || 1), usable, 8, "bold");
+      if (state.gps) wrapped("Localização registrada: " + state.gps.latitude + ", " + state.gps.longitude + " · Precisão aproximada: " + Math.round(state.gps.accuracy || 0) + " m", usable, 7, "normal", colors.muted);
+    }
+  }
+  function summary() {
+    section("SÍNTESE DOS RESULTADOS");
+    if (isMoradia) {
+      wrapped("Vistoria de entrega de unidade residencial. A avaliação é qualitativa e não utiliza pontuação de conformidade.", usable, 8);
+      return;
+    }
+    const labels = [["IM", counts.im || 0], ["OM", counts.om || 0], ["PI", counts.pi || 0], ["NI", counts.ni || 0], ["NA", counts.na || 0]];
+    const boxW = (usable - 4 * 2) / 5;
+    labels.forEach((entry, i) => {
+      const x = page.left + i * (boxW + 2);
+      doc.setFillColor(...colors.pale); doc.roundedRect(x, y, boxW, 15, 1.2, 1.2, "F");
+      setText(colors.muted, 6.5, "bold"); doc.text(entry[0], x + boxW / 2, y + 5, { align: "center" });
+      setText(colors.brand, 12, "bold"); doc.text(String(entry[1]), x + boxW / 2, y + 11.5, { align: "center" });
+    });
+    y += 19;
+    const pct = score && score.score != null ? Number(score.score).toFixed(2).replace(".", ",") + "%" : "Não calculável";
+    const cov = coverage && coverage.coverage != null ? Number(coverage.coverage).toFixed(2).replace(".", ",") + "%" : "Não calculável";
+    wrapped("Conformidade: " + pct + " · Cobertura: " + cov + " · Critérios avaliados: " + (score?.evaluated || 0) + "/" + sector.items.length + " · Pontos: " + (score?.pointsTotal ?? 0), usable, 8, "bold", colors.brand);
+    wrapped("Metodologia: IM = 1,00; OM = 1,00; PI = 0,65; NI = 0,00; NA não contabilizado. A cobertura mede a abrangência do checklist e não altera o percentual de conformidade.", usable, 7, "normal", colors.muted);
+  }
+  function criterionTitle(index, title, reference, rating, observation) {
+    const titleLines = doc.splitTextToSize(String(title || "Critério " + (index + 1)), usable - 18);
+    const refLines = reference ? doc.splitTextToSize(String(reference), usable - 18) : [];
+    const obsLines = doc.splitTextToSize(String(observation || "Sem observações registradas."), usable - 18);
+    const required = 13 + titleLines.length * 3.6 + refLines.length * 3 + obsLines.length * 3.2;
+    ensure(Math.min(required, 65));
+    doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y, 9, 8, 1, 1, "F");
+    setText(colors.brand, 8, "bold"); doc.text(String(index + 1), page.left + 4.5, y + 5.3, { align: "center" });
+    setText(colors.ink, 8.5, "bold"); doc.text(titleLines, page.left + 12, y + 3.5);
+    y += Math.max(9, titleLines.length * 3.6 + 1);
+    if (refLines.length) { setText(colors.muted, 6.8, "italic"); doc.text(refLines, page.left + 12, y); y += refLines.length * 3; }
+    setText(colors.brand, 7, "bold"); doc.text("CLASSIFICAÇÃO: " + rating, page.left + 12, y + 2.8);
+    y += 5;
+    setText(colors.muted, 6.8, "bold"); doc.text("OBSERVAÇÕES", page.left + 12, y + 2.5); y += 4;
+    setText(colors.ink, 7.5, "normal"); doc.text(obsLines, page.left + 12, y);
+    y += obsLines.length * 3.2 + 3;
+  }
+  async function addPhotos(photos, captionPrefix) {
+    if (!photos || !photos.length) return;
+    const gap = 4, colW = (usable - gap) / 2, imageH = 34, cardH = 44;
+    for (let i = 0; i < photos.length; i += 2) {
+      ensure(cardH + 2);
+      for (let j = 0; j < 2 && i + j < photos.length; j++) {
+        const photo = photos[i + j], x = page.left + j * (colW + gap);
+        doc.setDrawColor(...colors.line); doc.setFillColor(250, 252, 252); doc.roundedRect(x, y, colW, cardH, 1, 1, "FD");
+        const dataUrl = await pdfImageData(photo.dataUrl);
+        if (dataUrl) {
+          try {
+            const props = doc.getImageProperties(dataUrl);
+            const scale = Math.min((colW - 4) / props.width, imageH / props.height);
+            const iw = props.width * scale, ih = props.height * scale;
+            doc.addImage(dataUrl, (dataUrl.indexOf("image/png") >= 0 ? "PNG" : "JPEG"), x + (colW - iw) / 2, y + 2 + (imageH - ih) / 2, iw, ih, undefined, "FAST");
+          } catch (error) { setText(colors.muted, 7); doc.text("Imagem indisponível", x + 4, y + 17); }
+        } else { setText(colors.muted, 7); doc.text("Imagem indisponível", x + 4, y + 17); }
+        setText(colors.muted, 6.2, "normal");
+        doc.text(String(captionPrefix || "Evidência") + " " + (i + j + 1) + " · " + String(photo.name || "Foto").slice(0, 60), x + 3, y + 41);
+      }
+      y += cardH + 3;
+    }
+  }
+  function actionPlan(index, item, plan) {
+    const title = Array.isArray(item) ? item[0] : item?.question || item?.title || "Critério " + (index + 1);
+    ensure(22);
+    doc.setDrawColor(...colors.line); doc.roundedRect(page.left, y, usable, 1, 0.5, 0.5, "F");
+    y += 4;
+    wrapped((index + 1) + ". " + title + " · " + (state.ratings[index] || "—"), usable, 8, "bold", colors.brand);
+    const rows = [
+      ["Criticidade", plan.criticality || "Não definida"], ["Responsável", plan.responsible || "Não definido"],
+      ["Prazo", plan.deadline || "Não definido"], ["Ação corretiva", plan.action || "Não registrada"],
+      ["Evidência / referência", plan.evidence || "Não informada"], ["Situação", actionPlanDisplayStatus(plan)],
+      ["Validação do auditor", plan.auditorNote || "Não registrada"]
+    ];
+    rows.forEach(row => { ensure(10); wrapped(row[0] + ": " + row[1], usable - 4, 7.3); });
+    if (plan.validatedAt) wrapped("Data da validação: " + new Date(plan.validatedAt).toLocaleString("pt-BR"), usable - 4, 6.8, "normal", colors.muted);
+    (plan.history || []).forEach(h => {
+      ensure(9);
+      wrapped("Histórico · " + new Date(h.at).toLocaleString("pt-BR") + " · " + h.field + ": " + (h.from || "—") + " → " + (h.to || "—"), usable - 4, 6.5, "normal", colors.muted);
+    });
+    y += 3;
+  }
+  function addGeneralNotes() {
+    section("CONSIDERAÇÕES GERAIS");
+    wrapped(form.consideracoes || "Não informado.", usable, 8);
+    if (state.reportIntegrity) {
+      y += 3; wrapped("Integridade do registro: SHA-256 " + (state.reportIntegrity.hash || state.reportIntegrity.sha256 || "calculado no registro da inspeção") + ". O hash apoia a verificação de integridade, mas não substitui validação técnica.", usable, 6.5, "normal", colors.muted);
+    }
+    ensure(24); y += 8;
+    setText(colors.muted, 7); doc.line(page.left, y, page.left + 65, y); doc.text(isMoradia ? "Responsável pela vistoria" : "Responsável pela inspeção", page.left, y + 4);
+    if (isMoradia) { doc.line(page.left + 82, y, page.left + 147, y); doc.text("Colaborador(a) recebedor(a)", page.left + 82, y + 4); }
+  }
+
+  drawHeader();
+  metadata();
+  if (selectedModel === "executive") {
+    summary();
+    section("PANORAMA DAS AÇÕES PRIORITÁRIAS");
+    const critical = isMoradia ? [] : sector.items.map((item, index) => ({ item, index, plan: state.actionPlans[index] })).filter(x => ["PI", "NI"].includes(state.ratings[x.index]));
+    if (!critical.length) wrapped("Não há critérios PI/NI com plano de ação nesta inspeção.", usable, 8);
+    for (const entry of critical) {
+      actionPlan(entry.index, entry.item, entry.plan || {});
+      const photos = state.files[entry.index] || [];
+      if (photos.length) await addPhotos(photos, "Evidência do critério " + (entry.index + 1));
+    }
+    if (isMoradia) {
+      section("PENDÊNCIAS DA VISTORIA");
+      for (let i = 0; i < sector.items.length; i++) {
+        const item = sector.items[i], card = document.querySelector('[data-q="' + i + '"]');
+        const status = card?.querySelector('[data-field="status"]')?.value || "Não preenchido";
+        const obs = card?.querySelector('[data-field="obs"]')?.value || "";
+        if (status !== "Conforme" || obs) {
+          wrapped((item.area || "Ambiente") + " · " + (item.question || "Item") + " · " + status + (obs ? " · " + obs : ""), usable, 7.5);
+          await addPhotos(state.files[i] || [], "Foto");
         }
       }
-      return pdf.output('blob');
-    });
-
-    const blob = await Promise.race([
-      pdfPromise,
-      new Promise((_, reject) => { timeoutId = setTimeout(() => reject(new Error('A geração do PDF excedeu 120 segundos. O relatório foi preservado; tente novamente com menos imagens por vez.')), 120000); })
-    ]);
-    if (!blob || blob.type !== 'application/pdf' || blob.size < 1000) throw new Error('O PDF gerado está vazio ou inválido.');
-    return await saveReportPdf(id, blob, filename, selectedModel);
-  } finally {
-    if (timeoutId) clearTimeout(timeoutId);
-    content.classList.remove('pdf-capturing');
-    content.innerHTML = previous;
+    }
+    const evidence = sector.items.flatMap((item, index) => (state.files[index] || []).map(photo => ({ item, index, photo })));
+    if (evidence.length && !isMoradia) {
+      section("EVIDÊNCIAS RELEVANTES");
+      for (const entry of evidence.slice(0, 6)) {
+        wrapped("Critério " + (entry.index + 1) + " · " + (Array.isArray(entry.item) ? entry.item[0] : entry.item?.question || "Critério"), usable, 7, "bold");
+        await addPhotos([entry.photo], "Foto");
+      }
+    }
+    addGeneralNotes();
+  } else {
+    summary();
+    section(isMoradia ? "CHECKLIST DE ENTREGA DO APARTAMENTO" : "DETALHAMENTO DOS CRITÉRIOS");
+    for (let index = 0; index < sector.items.length; index++) {
+      const item = sector.items[index], card = document.querySelector('[data-q="' + index + '"]');
+      if (isMoradia) {
+        const status = card?.querySelector('[data-field="status"]')?.value || "Não preenchido";
+        const obs = card?.querySelector('[data-field="obs"]')?.value || "";
+        criterionTitle(index, (item.area || "Ambiente") + " · " + (item.question || "Item verificado"), "", status, obs);
+      } else {
+        const rating = state.ratings[index] || "PENDENTE";
+        const obs = card?.querySelector('[data-field="obs"]')?.value || "";
+        criterionTitle(index, Array.isArray(item) ? item[0] : item?.question || item?.title || "Critério " + (index + 1), Array.isArray(item) ? item[1] : item?.reference || "", rating, obs);
+      }
+      await addPhotos(state.files[index] || [], "Foto");
+      y += 3;
+    }
+    if (!isMoradia) {
+      section("PLANO DE AÇÃO E ACOMPANHAMENTO");
+      const plans = sector.items.map((item, index) => ({ item, index, plan: state.actionPlans[index] })).filter(x => x.plan && ["PI", "NI"].includes(state.ratings[x.index]));
+      if (!plans.length) wrapped("Nenhum plano de ação vinculado a critérios PI ou NI.", usable, 8);
+      for (const entry of plans) actionPlan(entry.index, entry.item, entry.plan);
+    } else {
+      section("CONSIDERAÇÕES DA VISTORIA");
+      wrapped(form.consideracoes || "Não informado.", usable, 8);
+    }
+    addGeneralNotes();
   }
+
+  drawFooters();
+  const blob = doc.output("blob");
+  if (!blob || blob.type !== "application/pdf" || blob.size < 1000) throw new Error("O PDF nativo gerado está vazio ou inválido.");
+  return await saveReportPdf(id, blob, filename, selectedModel);
 }
