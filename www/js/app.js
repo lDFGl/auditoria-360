@@ -387,7 +387,7 @@ function openPhotoViewer(criterionIndex,photoIndex,photosOverride){
  photoViewerState.photos=photos;photoViewerState.index=photoIndex;photoViewerState.criterionIndex=criterionIndex;photoViewerState.returnFocus=document.activeElement;
  const overlay=document.createElement("div");overlay.className="photo-viewer-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Visualizador de evidências fotográficas");
  overlay.innerHTML='<button type="button" class="photo-viewer-close" aria-label="Fechar visualizador">×</button><button type="button" class="photo-viewer-nav photo-viewer-prev" aria-label="Foto anterior">‹</button><figure class="photo-viewer-figure"><img class="photo-viewer-image" alt=""><figcaption class="photo-viewer-caption"></figcaption></figure><button type="button" class="photo-viewer-nav photo-viewer-next" aria-label="Próxima foto">›</button><div class="photo-viewer-counter" aria-live="polite"></div>';
- overlay.addEventListener("click",e=>{if(e.target===overlay)closePhotoViewer();});
+ overlay.addEventListener("click",e=>{if(e.target===overlay||(!e.target.closest(".photo-viewer-image,.photo-viewer-nav,.photo-viewer-close")))closePhotoViewer();});
  overlay.querySelector(".photo-viewer-close").addEventListener("click",closePhotoViewer);
  overlay.querySelector(".photo-viewer-prev").addEventListener("click",showPreviousPhoto);
  overlay.querySelector(".photo-viewer-next").addEventListener("click",showNextPhoto);
@@ -442,8 +442,9 @@ async function deleteHistoryInspection(id){
  try{
   localStorage.setItem(HISTORY_KEY,JSON.stringify(readHistory().filter(r=>r.id!==id)));
   localStorage.removeItem(DRAFT_PREFIX+id);
+  let legacyPhotoPrefix=null;try{const legacyKey=DRAFT_PREFIX+record.sector,legacy=JSON.parse(localStorage.getItem(legacyKey)||"null");if(legacy?.inspectionId===id){localStorage.removeItem(legacyKey);legacyPhotoPrefix=String(record.sector)+":";}}catch(e){}
   try{const idx=JSON.parse(localStorage.getItem(DRAFT_INDEX_KEY)||"[]");localStorage.setItem(DRAFT_INDEX_KEY,JSON.stringify(idx.filter(x=>x.inspectionId!==id)));}catch(e){}
-  const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction(["photos","reports"],"readwrite"),photoStore=tx.objectStore("photos"),keys=photoStore.getAllKeys();keys.onsuccess=()=>keys.result.filter(k=>String(k).startsWith(id+":")).forEach(k=>photoStore.delete(k));tx.objectStore("reports").delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("Exclusão local cancelada"));});db.close();
+  const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction(["photos","reports"],"readwrite"),photoStore=tx.objectStore("photos"),keys=photoStore.getAllKeys();keys.onsuccess=()=>keys.result.filter(k=>String(k).startsWith(id+":")||(legacyPhotoPrefix&&String(k).startsWith(legacyPhotoPrefix))).forEach(k=>photoStore.delete(k));tx.objectStore("reports").delete(id);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);tx.onabort=()=>reject(tx.error||new Error("Exclusão local cancelada"));});db.close();
   renderHistoryList();renderDashboard();renderFinalizedReports();renderCompletedInspections();alert("Inspeção excluída do armazenamento local deste navegador.");
  }catch(e){console.error("Falha ao excluir inspeção:",e);alert("Não foi possível concluir a exclusão local: "+e.message);}
 }
