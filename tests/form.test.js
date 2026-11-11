@@ -66,7 +66,7 @@ test("evidências oferecem seleção de arquivo e captura direta pela câmera",(
  assert.equal((app.match(/data-photo-action="file"/g)||[]).length,2);
  assert.equal((app.match(/data-photo-action="camera"/g)||[]).length,2);
  assert.equal((app.split('data-field="foto-camera" type="file" accept="image/*" multiple capture="environment" hidden').length-1),2);
- assert.match(app,/card\.querySelectorAll\("\[data-photo-action\]"\)/);
+ assert.match(photos,/card\.querySelectorAll\("\[data-photo-action\]"\)/);
  assert.match(app,/input\.click\(\)/);
  assert.match(app,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
  assert.match(css,/\.photo-controls\{display:grid;grid-template-columns:1fr 1fr/);
@@ -108,7 +108,7 @@ test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()
 
 
 test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(app,/reportCode:state\.reportCode/);});
-test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(storage,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
+test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(storage,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(storage,/indexedDB\.open\(PHOTO_DB,3\)/);});
 test("código de identificação aparece no cabeçalho dos dois modelos de relatório",()=>{assert.match(app,/class="report-code"/);assert.match(app,/esc\(state\.reportCode\)/);});
 
 
@@ -117,9 +117,9 @@ test("histórico de inspeções é uma tela separada do dashboard",()=>{assert.m
 test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,model\)/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,alternateModel\)/);assert.match(app,/const alternateModel=model==="executive"\?"complete":"executive"/);assert.match(app,/PDFs Completo e Executivo arquivados/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id, blob, filename, selectedModel\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
 
 
-test("o aplicativo carrega jsPDF local e gera PDF nativo em Blob para arquivamento",()=>{assert.ok(html.includes("jspdf.umd.min.js"));assert.ok(app.includes("window.jspdf && window.jspdf.jsPDF"));assert.ok(app.includes('doc.output("blob")'));assert.ok(app.includes("saveReportPdf(id, blob, filename, selectedModel)"));assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/html2pdf|html2canvas/);});
+test("o aplicativo carrega jsPDF local e gera PDF nativo em Blob para arquivamento",()=>{assert.ok(html.includes("jspdf.umd.min.js"));assert.ok(app.includes("window.jspdf && window.jspdf.jsPDF"));assert.ok(app.includes('doc.output("blob")'));assert.ok(app.includes("saveReportPdf(id, blob, filename, selectedModel)"));assert.match(storage,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/html2pdf|html2canvas/);});
 
-test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
+test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(storage,/const HISTORY_KEY=/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
 test("planos PI/NI são consultados na inspeção aberta dentro do histórico",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyDetailDialog"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function showHistoryDetails/);assert.match(app,/data-history-photo-criterion/);assert.match(app,/history-plan/);});
 
@@ -146,7 +146,7 @@ test("PDF completo gera texto vetorial e posiciona evidências abaixo de cada cr
 
 test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
  assert.match(photos,/function openPhotoViewer/);assert.match(photos,/function closePhotoViewer/);assert.match(photos,/function showNextPhoto/);assert.match(photos,/function showPreviousPhoto/);
- assert.match(app,/e\.key==="Escape"/);assert.match(app,/e\.key==="ArrowRight"/);assert.match(app,/e\.key==="ArrowLeft"/);
+ assert.match(photos,/e\.key==="Escape"/);assert.match(photos,/e\.key==="ArrowRight"/);assert.match(photos,/e\.key==="ArrowLeft"/);
  assert.match(css,/background:rgba\(0,0,0,\.85\)/);assert.match(css,/photoViewerFade/);
 });
 test("histórico separado apresenta abrir, PDF, excluir e consulta de evidências",()=>{
