@@ -685,25 +685,67 @@ async function generateAndArchivePdf(id, model = 'complete') {
   }
 }
 
-const generateAndArchivePdfOriginal = generateAndArchivePdf;
 async function generateAndArchivePdf(id, model = 'complete') {
+  if (typeof window.html2pdf !== 'function') throw new Error('Biblioteca local de geração de PDF indisponível.');
   const content = $('#reportContent');
   if (!content) throw new Error('Área de relatório indisponível.');
+  const selectedModel = model || 'complete';
   const previous = content.innerHTML;
-  const selectedModel = model || window.__a360PdfModel || 'complete';
-  window.__a360PdfModel = selectedModel;
+  let timeoutId;
   try {
-    if (selectedModel === 'executive') {
-      content.innerHTML = buildExecutiveReportHtml(formData());
-    } else {
-      content.innerHTML = buildStandardReportHtml(formData());
-    }
+    content.innerHTML = selectedModel === 'executive' ? buildExecutiveReportHtml(formData()) : buildStandardReportHtml(formData());
     content.classList.add('pdf-capturing');
-    return await generateAndArchivePdfOriginal(id, selectedModel);
+    await waitForReportAssets(content);
+    const safeWork = String(formData().obra || 'Inspecao').replace(/[^a-zA-Z0-9_\\- ]/g, '').trim().replace(/\\s+/g, '_').slice(0, 40) || 'Inspecao';
+    const suffix = selectedModel === 'executive' ? '_EXECUTIVO' : '_COMPLETO';
+    const filename = ((state.reportCode || 'Relatorio') + '_' + safeWork + suffix + '.pdf').replace(/_+/g, '_');
+
+    // A conversão deve partir do elemento do relatório; set() isolado não gera um PDF.
+    const pdfPromise = window.html2pdf().set({
+      margin: [9, 9, 12, 9],
+      filename,
+      image: { type: 'jpeg', quality: 0.82 },
+      html2canvas: {
+        scale: 1.1, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+        scrollX: 0, scrollY: 0, logging: false,
+        onclone: clonedDoc => {
+          const clonedContent = clonedDoc.getElementById('reportContent');
+          if (!clonedContent) return;
+          Object.assign(clonedContent.style, { width: '725px', maxWidth: '725px', minWidth: '0', margin: '0', padding: '0', boxSizing: 'border-box', overflow: 'visible' });
+          clonedContent.querySelectorAll('table').forEach(table => {
+            table.style.width = '100%'; table.style.maxWidth = '100%'; table.style.tableLayout = 'fixed';
+          });
+          clonedContent.querySelectorAll('th,td').forEach(cell => {
+            cell.style.minWidth = '0'; cell.style.overflowWrap = 'anywhere'; cell.style.wordBreak = 'break-word';
+          });
+        }
+      },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
+      pagebreak: { mode: ['css', 'legacy'] }
+    }).from(content).toPdf().get('pdf').then(pdf => {
+      if (selectedModel === 'complete') {
+        const total = pdf.internal.getNumberOfPages(), width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
+        for (let page = 1; page <= total; page++) {
+          pdf.setPage(page); pdf.setFont('helvetica', 'normal'); pdf.setFontSize(7); pdf.setTextColor(19, 92, 108);
+          pdf.text('AUDITORIA 360 · ' + (state.reportCode || ''), width / 2, 6, { align: 'center' });
+          pdf.setDrawColor(210, 220, 222); pdf.line(10, 8, width - 10, 8); pdf.line(10, height - 9, width - 10, height - 9);
+          pdf.setTextColor(100, 115, 120);
+          pdf.text('AUDITORIA 360 · ' + (state.reportCode || '') + ' · Página ' + page + ' de ' + total, width / 2, height - 5, { align: 'center' });
+        }
+      }
+      return pdf.output('blob');
+    });
+
+    const blob = await Promise.race([
+      pdfPromise,
+      new Promise((_, reject) => { timeoutId = setTimeout(() => reject(new Error('A geração do PDF excedeu 120 segundos. O relatório foi preservado; tente novamente com menos imagens por vez.')), 120000); })
+    ]);
+    if (!blob || blob.type !== 'application/pdf' || blob.size < 1000) throw new Error('O PDF gerado está vazio ou inválido.');
+    return await saveReportPdf(id, blob, filename, selectedModel);
   } finally {
-    content.innerHTML = previous;
+    if (timeoutId) clearTimeout(timeoutId);
     content.classList.remove('pdf-capturing');
-    delete window.__a360PdfModel;
+    content.innerHTML = previous;
   }
 }
 
