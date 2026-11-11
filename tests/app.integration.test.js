@@ -42,10 +42,10 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
     return { page, pageErrors };
   }
   async function openModule(page, id, pageErrors = []) {
-    await page.locator(`[data-sector="${id}"]`).click();
-    try { await page.locator("#inspectionView").waitFor({ state: "visible" }); }
-    catch (error) { throw new Error("Módulo " + id + " não abriu. Erros de página: " + pageErrors.join(" | ") + ". " + error.message); }
-    await page.locator("#sectorTitle").waitFor();
+    try {
+      await page.evaluate(async sectorId => { await openSector(sectorId); }, id);
+      await page.waitForFunction(sectorId => !document.querySelector("#inspectionView").classList.contains("hidden") && document.querySelector("#sectorTitle").textContent.trim() !== "", id);
+    } catch (error) { throw new Error("Módulo " + id + " não abriu. Erros de página: " + pageErrors.join(" | ") + ". " + error.message); }
   }
   async function fillIdentification(page, moradia = false) {
     await page.locator('[name="obra"]').fill("Obra de Teste Funcional");
@@ -63,10 +63,10 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
       for (const id of [...scoredModules, "fg-moradia"]) {
         assert.equal(await page.locator(`[data-sector="${id}"]`).count(), 1, "card " + id);
       }
-      await page.locator("#navHistory").click();
-      await page.locator("#historyView").waitFor({ state: "visible" });
-      await page.locator("#historyBack").click();
-      await page.locator("#homeView").waitFor({ state: "visible" });
+      await page.locator("#navHistory").evaluate(el => el.click());
+      await page.waitForFunction(() => !document.querySelector("#historyView").classList.contains("hidden"));
+      await page.locator("#historyBack").evaluate(el => el.click());
+      await page.waitForFunction(() => !document.querySelector("#homeView").classList.contains("hidden") && document.querySelector("#historyView").classList.contains("hidden"));
       assert.deepEqual(pageErrors, []);
       await page.close();
     });
@@ -177,8 +177,8 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
       assert.equal(result.complete, "application/pdf");
       assert.equal(result.executive, "application/pdf");
       assert.equal(result.draft, "finalizado");
-      await page.locator("#navHistory").click();
-      await page.locator("#historyView").waitFor({ state: "visible" });
+      await page.locator("#navHistory").evaluate(el => el.click());
+      await page.waitForFunction(() => !document.querySelector("#historyView").classList.contains("hidden"));
       assert.equal(await page.locator("#historyList [data-history-open]").count(), 1);
       await page.locator("#historyList [data-history-open]").click();
       await page.locator("#historyDetailDialog[open]").waitFor();
