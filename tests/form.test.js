@@ -140,3 +140,33 @@ test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
 test("todos os módulos reexibem o botão Finalizar e gerar PDF ao abrir a prévia",()=>{assert.match(html,/id="reportFinalize">Finalizar e gerar PDF<\/button>/);assert.match(app,/finalizeButton\.hidden=false;finalizeButton\.style\.display="inline-flex";finalizeButton\.disabled=false;finalizeButton\.textContent="Finalizar e gerar PDF"/);assert.match(css,/#reportFinalize\{display:inline-flex!important/);});
 test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/A geração do PDF excedeu 120 segundos/);});
 test("PDF usa largura A4 controlada e gravação IndexedDB trata abortos",()=>{assert.match(app,/clonedContent\.style\.width="725px"/);assert.match(app,/tx\.onabort=\(\)=>finish/);});
+
+test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
+ assert.match(app,/function openPhotoViewer/);assert.match(app,/function closePhotoViewer/);assert.match(app,/function showNextPhoto/);assert.match(app,/function showPreviousPhoto/);
+ assert.match(app,/e\.key==="Escape"/);assert.match(app,/e\.key==="ArrowRight"/);assert.match(app,/e\.key==="ArrowLeft"/);
+ assert.match(css,/background:rgba\(0,0,0,\.85\)/);assert.match(css,/photoViewerFade/);
+});
+test("histórico separado apresenta abrir, PDF, excluir e consulta de evidências",()=>{
+ assert.match(html,/id="historyView"/);assert.match(html,/id="historyList"/);assert.match(html,/id="historyDetailDialog"/);
+ assert.match(app,/data-history-open/);assert.match(app,/data-history-pdf/);assert.match(app,/data-history-delete/);
+ assert.match(app,/function deleteHistoryInspection/);assert.match(app,/function showHistoryDetails/);
+});
+test("PDF Executivo possui resumo, planos de ação e galeria consolidada",()=>{
+ assert.match(html,/id="pdfModelChoice"/);assert.match(app,/function buildExecutiveReportHtml/);
+ assert.match(app,/Resumo Executivo/);assert.match(app,/Plano de Ação/);assert.match(app,/Galeria de Evidências/);
+ assert.match(app,/exec-gallery/);assert.match(app,/exec-page/);
+});
+test("PDF Completo limita evidências a duas imagens por linha e pagina cabeçalho/rodapé",()=>{
+ assert.match(app,/width:calc\(50% - 6px\)/);assert.match(app,/Página \+page\+" de "\+total/);
+ assert.match(app,/pdf\.internal\.getNumberOfPages\(\)/);
+});
+test("navegação para histórico ou dashboard preserva rascunho em andamento",()=>{
+ assert.match(app,/salvar o rascunho antes de abrir o histórico/);
+ assert.match(app,/salvar o rascunho antes de sair da inspeção/);
+ assert.match(app,/saveCurrentDraft\("rascunho"\)/);
+});
+test("histórico reconstrói os critérios do FG Moradia sem alterar a persistência",()=>{
+ assert.match(app,/buildMoradiaItems\(draft\.roomCount\|\|record\.roomCount\|\|1\)/);
+ assert.match(app,/localStorage\.removeItem\(DRAFT_PREFIX\+id\)/);
+ assert.match(app,/tx\.objectStore\("reports"\)\.delete\(id\)/);
+});
