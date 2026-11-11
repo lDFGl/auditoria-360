@@ -701,12 +701,15 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
     y += 3; doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y, usable, 8, 1.2, 1.2, "F");
     setText(colors.brand, 9, "bold"); doc.text(title, page.left + 3, y + 5.4); y += 12;
   }
-  function wrapped(text, width, size = 8, style = "normal", color = colors.ink) {
-    setText(color, size, style);
+  function wrapped(text, width, size = 8, style = "normal", color = colors.ink, x = page.left) {
     const lines = doc.splitTextToSize(String(text == null || text === "" ? "—" : text), width);
     const lineHeight = size * 0.42 + 1.1;
-    doc.text(lines, page.left, y);
-    y += lines.length * lineHeight;
+    for (const line of lines) {
+      if (y + lineHeight > page.height - page.bottom) newPage();
+      setText(color, size, style);
+      doc.text(String(line), x, y);
+      y += lineHeight;
+    }
     return lines.length * lineHeight;
   }
   function field(label, value, x, yy, width) {
@@ -758,21 +761,14 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
     wrapped("Metodologia: IM = 1,00; OM = 1,00; PI = 0,65; NI = 0,00; NA não contabilizado. A cobertura mede a abrangência do checklist e não altera o percentual de conformidade.", usable, 7, "normal", colors.muted);
   }
   function criterionTitle(index, title, reference, rating, observation) {
-    const titleLines = doc.splitTextToSize(String(title || "Critério " + (index + 1)), usable - 18);
-    const refLines = reference ? doc.splitTextToSize(String(reference), usable - 18) : [];
-    const obsLines = doc.splitTextToSize(String(observation || "Sem observações registradas."), usable - 18);
-    const required = 13 + titleLines.length * 3.6 + refLines.length * 3 + obsLines.length * 3.2;
-    ensure(Math.min(required, 65));
-    doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y, 9, 8, 1, 1, "F");
-    setText(colors.brand, 8, "bold"); doc.text(String(index + 1), page.left + 4.5, y + 5.3, { align: "center" });
-    setText(colors.ink, 8.5, "bold"); doc.text(titleLines, page.left + 12, y + 3.5);
-    y += Math.max(9, titleLines.length * 3.6 + 1);
-    if (refLines.length) { setText(colors.muted, 6.8, "italic"); doc.text(refLines, page.left + 12, y); y += refLines.length * 3; }
-    setText(colors.brand, 7, "bold"); doc.text("CLASSIFICAÇÃO: " + rating, page.left + 12, y + 2.8);
-    y += 5;
-    setText(colors.muted, 6.8, "bold"); doc.text("OBSERVAÇÕES", page.left + 12, y + 2.5); y += 4;
-    setText(colors.ink, 7.5, "normal"); doc.text(obsLines, page.left + 12, y);
-    y += obsLines.length * 3.2 + 3;
+    ensure(14);
+    doc.setFillColor(...colors.pale); doc.roundedRect(page.left, y - 2, 9, 8, 1, 1, "F");
+    setText(colors.brand, 8, "bold"); doc.text(String(index + 1), page.left + 4.5, y + 3.3, { align: "center" });
+    wrapped(title || "Critério " + (index + 1), usable - 15, 8.5, "bold", colors.ink, page.left + 12);
+    if (reference) wrapped("Referência: " + reference, usable - 15, 6.8, "italic", colors.muted, page.left + 12);
+    wrapped("CLASSIFICAÇÃO: " + (rating || "—"), usable - 15, 7, "bold", colors.brand, page.left + 12);
+    wrapped("OBSERVAÇÕES: " + (observation || "Sem observações registradas."), usable - 15, 7.5, "normal", colors.ink, page.left + 12);
+    y += 2;
   }
   async function addPhotos(photos, captionPrefix) {
     if (!photos || !photos.length) return;
