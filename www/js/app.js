@@ -299,15 +299,6 @@ function reportCodeForInspection(data={}) {
  try{localStorage.setItem(key,String(next));}catch(e){throw new Error("Não foi possível reservar o número sequencial do relatório neste navegador.");}
  state.reportCode=prefix+"-"+String(next).padStart(3,"0")+"/"+year;return state.reportCode;
 }
-async function saveReportPdf(id,file,name,model="complete"){
- if(!file||file.type!=="application/pdf")throw new Error("O gerador não retornou um arquivo PDF válido.");
- const filename=name||file.name||((state.reportCode||"Relatorio")+".pdf"),entry={blob:file,name:filename,type:"application/pdf",model,savedAt:new Date().toISOString()};
- const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction("reports","readwrite"),store=tx.objectStore("reports");let settled=false;const finish=error=>{if(settled)return;settled=true;db.close();error?reject(error):resolve();};const get=store.get(id);get.onsuccess=()=>{const previous=get.result||{},files={...(previous.files||{})};files[model]=entry;store.put({...previous,...entry,files},id);};get.onerror=()=>finish(get.error||new Error("Não foi possível recuperar os PDFs anteriores."));tx.oncomplete=()=>finish();tx.onerror=()=>finish(tx.error||new Error("Falha ao gravar o PDF no armazenamento local."));tx.onabort=()=>finish(tx.error||new Error("A gravação do PDF foi cancelada pelo navegador."));});
- const records=readHistory(),item=records.find(x=>x.id===id);if(item){item.pdfName=filename;item.pdfModel=model;item.pdfSavedAt=new Date().toISOString();item.pdfModels=["complete","executive"];localStorage.setItem(HISTORY_KEY,JSON.stringify(records));}return filename;
-}
-async function readReportPdf(id,model){
- const db=await openPhotoDB();return new Promise((resolve,reject)=>{const req=db.transaction("reports","readonly").objectStore("reports").get(id);req.onsuccess=()=>{db.close();const saved=req.result||null;resolve(model?(saved?.files?.[model]||((saved?.model===model)?saved:null)):saved);};req.onerror=()=>{db.close();reject(req.error);};});
-}
 async function renderFinalizedReports(){
  const host=$("#finalizedReports");if(!host)return;
  const records=readHistory().filter(x=>x.status==="finalizado").sort((a,b)=>String(b.finalizedAt||"").localeCompare(String(a.finalizedAt||"")));
@@ -356,37 +347,6 @@ async function showReportInPage(html) {
 
 
 /* Experiência executiva: histórico separado, visualizador fotográfico e PDF executivo. */
-const photoViewerState={photos:[],index:0,criterionIndex:0,returnFocus:null,overlay:null};
-function openPhotoViewer(criterionIndex,photoIndex,photosOverride){
- const photos=photosOverride||state.files[criterionIndex]||[];
- if(!photos.length||!photos[photoIndex])return;
- closePhotoViewer();
- photoViewerState.photos=photos;photoViewerState.index=photoIndex;photoViewerState.criterionIndex=criterionIndex;photoViewerState.returnFocus=document.activeElement;
- const overlay=document.createElement("dialog");overlay.className="photo-viewer-overlay";overlay.setAttribute("role","dialog");overlay.setAttribute("aria-modal","true");overlay.setAttribute("aria-label","Visualizador de evidências fotográficas");
- overlay.innerHTML='<button type="button" class="photo-viewer-close" aria-label="Fechar visualizador">×</button><button type="button" class="photo-viewer-nav photo-viewer-prev" aria-label="Foto anterior">‹</button><figure class="photo-viewer-figure"><img class="photo-viewer-image" alt=""><figcaption class="photo-viewer-caption"></figcaption></figure><button type="button" class="photo-viewer-nav photo-viewer-next" aria-label="Próxima foto">›</button><div class="photo-viewer-counter" aria-live="polite"></div>';
- overlay.addEventListener("click",e=>{if(e.target===overlay||(!e.target.closest(".photo-viewer-image,.photo-viewer-nav,.photo-viewer-close")))closePhotoViewer();});
- overlay.querySelector(".photo-viewer-close").addEventListener("click",closePhotoViewer);
- overlay.querySelector(".photo-viewer-prev").addEventListener("click",showPreviousPhoto);
- overlay.querySelector(".photo-viewer-next").addEventListener("click",showNextPhoto);
- document.body.appendChild(overlay);photoViewerState.overlay=overlay;overlay.showModal();document.body.classList.add("photo-viewer-open");document.addEventListener("keydown",handlePhotoViewerKeys);renderPhotoViewerImage();overlay.querySelector(".photo-viewer-close").focus();
-}
-function renderPhotoViewerImage(){
- const overlay=photoViewerState.overlay,p=photoViewerState.photos[photoViewerState.index];if(!overlay||!p)return;
- const image=overlay.querySelector(".photo-viewer-image");image.src=p.dataUrl;image.alt=p.name||"Evidência fotográfica";
- overlay.querySelector(".photo-viewer-caption").textContent=p.name||"Evidência fotográfica";
- overlay.querySelector(".photo-viewer-counter").textContent=(photoViewerState.index+1)+" de "+photoViewerState.photos.length;
- overlay.querySelector(".photo-viewer-prev").disabled=photoViewerState.index<=0;
- overlay.querySelector(".photo-viewer-next").disabled=photoViewerState.index>=photoViewerState.photos.length-1;
-}
-function closePhotoViewer(){
- const overlay=photoViewerState.overlay;if(!overlay)return;
- document.removeEventListener("keydown",handlePhotoViewerKeys);if(overlay.open)overlay.close();overlay.remove();photoViewerState.overlay=null;photoViewerState.photos=[];document.body.classList.remove("photo-viewer-open");
- if(photoViewerState.returnFocus?.isConnected)photoViewerState.returnFocus.focus();photoViewerState.returnFocus=null;
-}
-function showNextPhoto(){if(photoViewerState.index<photoViewerState.photos.length-1){photoViewerState.index++;renderPhotoViewerImage();}}
-function showPreviousPhoto(){if(photoViewerState.index>0){photoViewerState.index--;renderPhotoViewerImage();}}
-function handlePhotoViewerKeys(e){if(!photoViewerState.overlay)return;if(e.key==="Escape"){e.preventDefault();closePhotoViewer();}else if(e.key==="ArrowRight"){e.preventDefault();showNextPhoto();}else if(e.key==="ArrowLeft"){e.preventDefault();showPreviousPhoto();}}
-
 function formatHistoryDate(value){if(!value)return"—";const d=new Date(value.length===10?value+"T12:00:00":value);return Number.isNaN(d.getTime())?String(value):d.toLocaleDateString("pt-BR");}
 function historyScore(record){if(record.mode==="moradia")return"Sem pontuação";const n=Number(record.conformity);return Number.isFinite(n)?n.toFixed(2).replace(".",",")+"%":"Não calculada";}
 function renderHistoryList(){
