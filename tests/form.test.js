@@ -93,7 +93,7 @@ test("relatório apresenta quadro de plano de ação e sinaliza prazos vencidos"
 });
 
 
-test("fase 2 exibe cobertura separada da conformidade e indicadores de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(app,/Ações com prazo vencido/);assert.match(app,/Achados de alta criticidade/);});
+test("fase 2 exibe cobertura separada da conformidade e indicadores executivos de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(app,/Ações vencidas/);assert.match(app,/Críticos em aberto/);assert.match(app,/coverage=totalApplicable/);});
 test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{assert.match(app,/data-action-field="criticality"/);assert.match(app,/Não definida.*Baixa.*Média.*Alta.*Crítica/);assert.match(app,/criticidade é definida pelo auditor e não altera a pontuação/);});
 test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
 test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
@@ -111,15 +111,15 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
-test("tela inicial apresenta checklists realizados com planos PI/NI vinculados",()=>{assert.match(html,/id="completedInspections"/);assert.match(app,/function renderCompletedInspections/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
-test("finalização gera, arquiva e registra automaticamente o PDF",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename\)/);assert.doesNotMatch(app,/Preparando impressão/);});
+test("histórico de inspeções é uma tela separada do dashboard",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyList"/);assert.doesNotMatch(html,/id="completedInspections"/);assert.match(app,/function renderHistoryList/);assert.match(app,/data-history-open/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
+test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId,model\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename,window\.__a360PdfModel\|\|"complete"\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
 
 
-test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
+test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/toPdf\(\)\.get\("pdf"\)/);assert.match(app,/pdf\.output\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
 test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
-test("planos PI/NI são consultados dentro do checklist realizado, sem painel isolado",()=>{assert.match(html,/id="completedInspections"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function renderCompletedInspections/);assert.match(app,/data-checklist-details/);assert.match(app,/data-checklist-id/);});
+test("planos PI/NI são consultados na inspeção aberta dentro do histórico",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyDetailDialog"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function showHistoryDetails/);assert.match(app,/data-history-photo-criterion/);assert.match(app,/history-plan/);});
 
 test("registro isolado de planos e referências órfãs foram removidos",()=>{
  assert.doesNotMatch(app,/function renderActionPlanRegister/);
@@ -140,3 +140,33 @@ test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
 test("todos os módulos reexibem o botão Finalizar e gerar PDF ao abrir a prévia",()=>{assert.match(html,/id="reportFinalize">Finalizar e gerar PDF<\/button>/);assert.match(app,/finalizeButton\.hidden=false;finalizeButton\.style\.display="inline-flex";finalizeButton\.disabled=false;finalizeButton\.textContent="Finalizar e gerar PDF"/);assert.match(css,/#reportFinalize\{display:inline-flex!important/);});
 test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/A geração do PDF excedeu 120 segundos/);});
 test("PDF usa largura A4 controlada e gravação IndexedDB trata abortos",()=>{assert.match(app,/clonedContent\.style\.width="725px"/);assert.match(app,/tx\.onabort=\(\)=>finish/);});
+
+test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
+ assert.match(app,/function openPhotoViewer/);assert.match(app,/function closePhotoViewer/);assert.match(app,/function showNextPhoto/);assert.match(app,/function showPreviousPhoto/);
+ assert.match(app,/e\.key==="Escape"/);assert.match(app,/e\.key==="ArrowRight"/);assert.match(app,/e\.key==="ArrowLeft"/);
+ assert.match(css,/background:rgba\(0,0,0,\.85\)/);assert.match(css,/photoViewerFade/);
+});
+test("histórico separado apresenta abrir, PDF, excluir e consulta de evidências",()=>{
+ assert.match(html,/id="historyView"/);assert.match(html,/id="historyList"/);assert.match(html,/id="historyDetailDialog"/);
+ assert.match(app,/data-history-open/);assert.match(app,/data-history-pdf/);assert.match(app,/data-history-delete/);
+ assert.match(app,/function deleteHistoryInspection/);assert.match(app,/function showHistoryDetails/);
+});
+test("PDF Executivo possui resumo, planos de ação e galeria consolidada",()=>{
+ assert.match(html,/id="pdfModelChoice"/);assert.match(app,/function buildExecutiveReportHtml/);
+ assert.match(app,/Resumo Executivo/);assert.match(app,/Plano de Ação/);assert.match(app,/Galeria de Evidências/);
+ assert.match(app,/exec-gallery/);assert.match(app,/exec-page/);
+});
+test("PDF Completo limita evidências a duas imagens por linha e pagina cabeçalho/rodapé",()=>{
+ assert.match(app,/width:calc\(50% - 6px\)/);assert.match(app,/Página "\+page\+" de "\+total/);
+ assert.match(app,/pdf\.internal\.getNumberOfPages\(\)/);
+});
+test("navegação para histórico ou dashboard preserva rascunho em andamento",()=>{
+ assert.match(app,/salvar o rascunho antes de abrir o histórico/);
+ assert.match(app,/salvar o rascunho antes de sair da inspeção/);
+ assert.match(app,/saveCurrentDraft\("rascunho"\)/);
+});
+test("histórico reconstrói os critérios do FG Moradia sem alterar a persistência",()=>{
+ assert.match(app,/buildMoradiaItems\(draft\.roomCount\|\|record\.roomCount\|\|1\)/);
+ assert.match(app,/localStorage\.removeItem\(DRAFT_PREFIX\+id\)/);
+ assert.match(app,/tx\.objectStore\("reports"\)\.delete\(id\)/);
+});
