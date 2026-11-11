@@ -93,7 +93,7 @@ test("relatório apresenta quadro de plano de ação e sinaliza prazos vencidos"
 });
 
 
-test("fase 2 exibe cobertura separada da conformidade e indicadores de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(app,/Ações com prazo vencido/);assert.match(app,/Achados de alta criticidade/);});
+test("fase 2 exibe cobertura separada da conformidade e indicadores executivos de ações",()=>{assert.match(html,/Indicadores das inspeções/);assert.match(app,/Ações vencidas/);assert.match(app,/Críticos em aberto/);assert.match(app,/coverage=totalApplicable/);});
 test("criticidade é registrada no plano PI/NI sem alterar a pontuação",()=>{assert.match(app,/data-action-field="criticality"/);assert.match(app,/Não definida.*Baixa.*Média.*Alta.*Crítica/);assert.match(app,/criticidade é definida pelo auditor e não altera a pontuação/);});
 test("histórico de alterações do plano é registrado e incluído no relatório",()=>{assert.match(app,/function logActionPlanChange/);assert.match(app,/p\.history\.push/);assert.match(app,/Histórico de alterações do plano de ação/);assert.match(app,/actionHistoryRows/);});
 test("dashboard consolida planos em aberto e atrasados",()=>{assert.match(app,/openActions=actionItems\.filter/);assert.match(app,/overdueActions=actionItems\.filter/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);});
@@ -111,15 +111,15 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
-test("tela inicial apresenta checklists realizados com planos PI/NI vinculados",()=>{assert.match(html,/id="completedInspections"/);assert.match(app,/function renderCompletedInspections/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
-test("finalização gera, arquiva e registra automaticamente o PDF",()=>{assert.match(app,/reportFinalize.*addEventListener\("click",async/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename\)/);assert.doesNotMatch(app,/Preparando impressão/);});
+test("histórico de inspeções é uma tela separada do dashboard",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyList"/);assert.doesNotMatch(html,/id="completedInspections"/);assert.match(app,/function renderHistoryList/);assert.match(app,/data-history-open/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
+test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdf\(state\.inspectionId,model\)/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename,window\.__a360PdfModel\|\|"complete"\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
 
 
 test("o aplicativo carrega html2pdf e gera PDF em Blob para arquivamento local",()=>{assert.match(html,/js\/vendor\/html2pdf\.bundle\.min\.js/);assert.match(app,/window\.html2pdf\(\)/);assert.match(app,/outputPdf\("blob"\)/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);assert.doesNotMatch(app,/Anexar \/ substituir PDF/);});
 
 test("limpeza do painel remove também planos de inspeções finalizadas e atualiza os painéis relacionados",()=>{assert.doesNotMatch(app,/renderActionPlanRegister/);assert.match(app,/localStorage\.removeItem\(HISTORY_KEY\);renderDashboard\(\);renderFinalizedReports\(\);renderCompletedInspections\(\)/);});
 
-test("planos PI/NI são consultados dentro do checklist realizado, sem painel isolado",()=>{assert.match(html,/id="completedInspections"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function renderCompletedInspections/);assert.match(app,/data-checklist-details/);assert.match(app,/data-checklist-id/);});
+test("planos PI/NI são consultados na inspeção aberta dentro do histórico",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyDetailDialog"/);assert.doesNotMatch(html,/id="actionPlanRegister"/);assert.match(app,/function showHistoryDetails/);assert.match(app,/data-history-photo-criterion/);assert.match(app,/history-plan/);});
 
 test("registro isolado de planos e referências órfãs foram removidos",()=>{
  assert.doesNotMatch(app,/function renderActionPlanRegister/);
