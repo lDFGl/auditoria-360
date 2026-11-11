@@ -343,3 +343,10 @@ body[data-theme="dark"] .history-toolbar input,body[data-theme="dark"] .history-
 body[data-theme="dark"] .history-empty{background:#193e48;border-color:#42656d;color:#d6e4e6}
 body[data-theme="light"] .history-heading h1{color:#fff}
 @media(max-width:640px){.report-viewer-toolbar{align-items:flex-start}.report-viewer-toolbar>div{display:flex;flex-direction:column;align-items:stretch}}
+
+
+/* Ampliador em camada modal nativa: fica acima do relatório e de outros diálogos. */
+dialog.photo-viewer-overlay{position:fixed;inset:0;z-index:2147483000;margin:0;padding:58px 76px;width:100vw;height:100vh;max-width:none;max-height:none;border:0;border-radius:0;background:rgba(0,0,0,.88);color:#fff;display:flex;align-items:center;justify-content:center;box-sizing:border-box}
+dialog.photo-viewer-overlay::backdrop{background:transparent}
+dialog.photo-viewer-overlay[open]{display:flex}
+@media(max-width:760px){dialog.photo-viewer-overlay{padding:58px 10px 68px}}
