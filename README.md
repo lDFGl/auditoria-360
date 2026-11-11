@@ -102,3 +102,14 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - Versão do aplicativo: **2.3.0**.
 
 As melhorias de relatório não alteram a metodologia de pontuação, a cobertura, os planos de ação, a criticidade ou os registros históricos. O código legível organiza a identificação, mas permanece local e não representa protocolo central corporativo.
+
+
+## Histórico, evidências e relatórios executivos
+
+- O menu **Histórico de inspeções** concentra os registros concluídos, com consulta dos dados gerais, critérios, evidências fotográficas e planos de ação.
+- Cada registro permite abrir a inspeção, baixar o PDF arquivado ou excluir os dados locais associados. A exclusão exige confirmação e remove o registro, rascunho, evidências e PDF daquele identificador.
+- As evidências podem ser ampliadas em visualizador fullscreen, com navegação entre imagens do mesmo critério, fechamento por Esc ou clique no fundo.
+- Na finalização, é possível escolher **PDF Executivo** ou **PDF Completo**. O executivo consolida resumo e indicadores, achados PI/NI, planos de ação e galeria fotográfica. O completo mantém o detalhamento operacional, com cabeçalho, rodapé e evidências agrupadas por critério.
+- O dashboard prioriza indicadores de inspeções realizadas, conformidade média, planos em aberto, críticos em aberto e ações vencidas.
+
+Os dados continuam locais ao navegador/dispositivo. A tela de histórico não representa uma base corporativa compartilhada, sincronização entre usuários ou backup central. A exclusão no histórico é permanente para os dados locais daquele registro.
