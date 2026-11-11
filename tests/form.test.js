@@ -1,6 +1,8 @@
 const test=require("node:test"),assert=require("node:assert/strict"),fs=require("node:fs");
 const html=fs.readFileSync("www/index.html","utf8");
 const app=fs.readFileSync("www/js/app.js","utf8");
+const storage=fs.readFileSync("www/js/storage.js","utf8");
+const photos=fs.readFileSync("www/js/photos.js","utf8");
 const css=fs.readFileSync("www/css/styles.css","utf8");
 test("campo colaborador inicia desativado e não bloqueia módulos ocultos",()=>{
  assert.match(html,/<input name="colaborador" disabled/);
@@ -106,7 +108,7 @@ test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()
 
 
 test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(app,/reportCode:state\.reportCode/);});
-test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(app,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
+test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(storage,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(app,/indexedDB\.open\(PHOTO_DB,3\)/);});
 test("código de identificação aparece no cabeçalho dos dois modelos de relatório",()=>{assert.match(app,/class="report-code"/);assert.match(app,/esc\(state\.reportCode\)/);});
 
 
@@ -143,7 +145,7 @@ test("PDF nativo usa página A4 e gravação IndexedDB trata abortos",()=>{asser
 test("PDF completo gera texto vetorial e posiciona evidências abaixo de cada critério",()=>{assert.ok(app.includes("doc.splitTextToSize"));assert.ok(app.includes("async function addPhotos"));assert.ok(app.includes('await addPhotos(state.files[index] || [], "Foto")'));assert.ok(app.includes("doc.addImage"));});
 
 test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
- assert.match(app,/function openPhotoViewer/);assert.match(app,/function closePhotoViewer/);assert.match(app,/function showNextPhoto/);assert.match(app,/function showPreviousPhoto/);
+ assert.match(photos,/function openPhotoViewer/);assert.match(photos,/function closePhotoViewer/);assert.match(photos,/function showNextPhoto/);assert.match(photos,/function showPreviousPhoto/);
  assert.match(app,/e\.key==="Escape"/);assert.match(app,/e\.key==="ArrowRight"/);assert.match(app,/e\.key==="ArrowLeft"/);
  assert.match(css,/background:rgba\(0,0,0,\.85\)/);assert.match(css,/photoViewerFade/);
 });

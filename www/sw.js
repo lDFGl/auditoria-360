@@ -1,6 +1,6 @@
 const BUILD_ID="__BUILD_ID__";
 const CACHE_NAME="auditoria360-"+(BUILD_ID==="__BUILD_ID__"?"local":BUILD_ID);
-const APP_SHELL=["./","./index.html","./css/styles.css","./js/score.js","./js/app.js","./js/vendor/jspdf.umd.min.js","./manifest.webmanifest","./logo-fg.png","./icons/icon-192.svg","./icons/icon-512.svg","./icons/icon-maskable.svg","./fonts/dm-sans-variable.woff2","./fonts/manrope-variable.woff2"];
+const APP_SHELL=["./","./index.html","./css/styles.css","./js/score.js","./js/storage.js","./js/photos.js","./js/app.js","./js/vendor/jspdf.umd.min.js","./manifest.webmanifest","./logo-fg.png","./icons/icon-192.svg","./icons/icon-512.svg","./icons/icon-maskable.svg","./fonts/dm-sans-variable.woff2","./fonts/manrope-variable.woff2"];
 self.addEventListener("install",event=>{event.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(APP_SHELL)));});
 self.addEventListener("message",event=>{if(event.data?.type==="SKIP_WAITING")self.skipWaiting();});
 self.addEventListener("activate",event=>{event.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k.startsWith("auditoria360-")&&k!==CACHE_NAME).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});

@@ -40,7 +40,7 @@ tests/               testes automatizados
 www/
   index.html         entrada da aplicação
   css/               estilos
-  js/app.js          lógica do navegador
+  js/app.js          orquestração da aplicação\n  js/storage.js      persistência local, rascunhos, histórico e PDFs\n  js/photos.js       leitura, tratamento, galeria e visualizador de fotos
   logo-fg.png        identidade visual
   manifest.webmanifest
   sw.js              cache do shell para uso offline
