@@ -340,16 +340,6 @@ async function saveReportPdf(id,file,name,model="complete"){
  const db=await openPhotoDB();await new Promise((resolve,reject)=>{const tx=db.transaction("reports","readwrite"),store=tx.objectStore("reports");let settled=false;const finish=error=>{if(settled)return;settled=true;db.close();error?reject(error):resolve();};const get=store.get(id);get.onsuccess=()=>{const previous=get.result||{},files={...(previous.files||{})};files[model]=entry;store.put({...previous,...entry,files},id);};get.onerror=()=>finish(get.error||new Error("Não foi possível recuperar os PDFs anteriores."));tx.oncomplete=()=>finish();tx.onerror=()=>finish(tx.error||new Error("Falha ao gravar o PDF no armazenamento local."));tx.onabort=()=>finish(tx.error||new Error("A gravação do PDF foi cancelada pelo navegador."));});
  const records=readHistory(),item=records.find(x=>x.id===id);if(item){item.pdfName=filename;item.pdfModel=model;item.pdfSavedAt=new Date().toISOString();item.pdfModels=["complete","executive"];localStorage.setItem(HISTORY_KEY,JSON.stringify(records));}return filename;
 }
-async function generateAndArchivePdf(id){
- if(typeof window.html2pdf!=="function")throw new Error("Biblioteca local de geração de PDF indisponível.");
- const content=$("#reportContent");if(!content||!content.innerHTML.trim())throw new Error("O conteúdo do relatório não está disponível para conversão.");
- await waitForReportAssets(content);
- const model=window.__a360PdfModel||"complete";const suffix=model==="executive"?"_EXECUTIVO":"_COMPLETO";const filename=((state.reportCode||"Relatorio")+"_"+String(formData().obra||"Inspecao").replace(/[^a-z0-9_-]+/gi,"_")+suffix+".pdf");
- const renderPromise=window.html2pdf().set({margin:[9,9,12,9],filename,image:{type:"jpeg",quality:0.92},html2canvas:{scale:1.1,useCORS:true,backgroundColor:"#ffffff",scrollX:0,scrollY:0,onclone:(clonedDoc)=>{const clonedContent=clonedDoc.getElementById("reportContent");if(clonedContent){clonedContent.style.width="725px";clonedContent.style.maxWidth="725px";clonedContent.style.minWidth="0";clonedContent.style.margin="0";clonedContent.style.padding="0";clonedContent.style.boxSizing="border-box";clonedContent.style.overflow="visible";clonedContent.querySelectorAll("table").forEach(table=>{table.style.width="100%";table.style.maxWidth="100%";table.style.tableLayout="fixed";});clonedContent.querySelectorAll("th,td").forEach(cell=>{cell.style.minWidth="0";cell.style.overflowWrap="anywhere";cell.style.wordBreak="break-word";});}}},jsPDF:{unit:"mm",format:"a4",orientation:"portrait"},pagebreak:{mode:["css"]}}).from(content).toPdf().get("pdf").then(pdf=>{if(model==="complete"){const total=pdf.internal.getNumberOfPages(),width=pdf.internal.pageSize.getWidth(),height=pdf.internal.pageSize.getHeight();for(let page=1;page<=total;page++){pdf.setPage(page);pdf.setFont("helvetica","normal");pdf.setFontSize(7);pdf.setTextColor(19,92,108);pdf.text("AUDITORIA 360 · "+(state.reportCode||""),width/2,6,{align:"center"});pdf.setDrawColor(210,220,222);pdf.line(10,8,width-10,8);pdf.line(10,height-9,width-10,height-9);pdf.setTextColor(100,115,120);pdf.text("AUDITORIA 360 · "+(state.reportCode||"")+" · Página "+page+" de "+total,width/2,height-5,{align:"center"});}}return pdf.output("blob");});
- let timeoutId;const blob=await Promise.race([renderPromise,new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("A geração do PDF excedeu 120 segundos. Reduza a quantidade de fotos por critério e tente novamente.")),120000);})]).finally(()=>clearTimeout(timeoutId));
- if(!blob||blob.type!=="application/pdf"||blob.size<1000)throw new Error("O PDF gerado está vazio ou inválido.");
- return await saveReportPdf(id,blob,filename,window.__a360PdfModel||"complete");
-}
 async function readReportPdf(id,model){
  const db=await openPhotoDB();return new Promise((resolve,reject)=>{const req=db.transaction("reports","readonly").objectStore("reports").get(id);req.onsuccess=()=>{db.close();const saved=req.result||null;resolve(model?(saved?.files?.[model]||((saved?.model===model)?saved:null)):saved);};req.onerror=()=>{db.close();reject(req.error);};});
 }
@@ -467,14 +457,6 @@ function buildExecutiveReportHtml(data){
  const page3=header+'<h1 class="exec-title">Galeria de Evidências</h1><p class="exec-subtitle">Evidências fotográficas consolidadas e agrupadas por critério · '+evidence.length+' imagem(ns).</p>'+(gallery?'<div class="exec-gallery">'+gallery+'</div>':'<div class="exec-empty">Não foram anexadas evidências fotográficas nesta inspeção.</div>')+footer;
  return styles+'<section class="exec-page">'+page1+'</section><section class="exec-page">'+page2+'</section><section class="exec-page">'+page3+'</section>';
 }
-const generateAndArchivePdfOriginal=generateAndArchivePdf;
-async function generateAndArchivePdf(id,model="complete"){
- const content=$("#reportContent");if(!content)throw new Error("Área de relatório indisponível.");
- const previous=content.innerHTML;window.__a360PdfModel=model;
- try{if(model==="executive")content.innerHTML=buildExecutiveReportHtml(formData());return await generateAndArchivePdfOriginal(id);}
- finally{content.innerHTML=previous;delete window.__a360PdfModel;}
-}
-
 const legacyRenderHome=renderHome;
 renderHome=function(){const history=$("#historyView");if(history)history.classList.add("hidden");$("#homeView")?.classList.remove("hidden");$("#inspectionView")?.classList.add("hidden");$("#navDashboard")?.classList.add("active");$("#navHistory")?.classList.remove("active");legacyRenderHome();};
 const legacyOpenSector=openSector;
@@ -645,49 +627,10 @@ function buildExecutiveReportHtml(data) {
     '</body></html>';
 }
 
-async function generateAndArchivePdf(id, model = 'complete') {
-  if (typeof window.html2pdf !== 'function') throw new Error('Biblioteca local de geração de PDF indisponível.');
-  const content = $('#reportContent');
-  if (!content) throw new Error('Área de relatório indisponível.');
-  const selectedModel = model || window.__a360PdfModel || 'complete';
-  const previous = content.innerHTML;
-  window.__a360PdfModel = selectedModel;
-  try {
-    content.innerHTML = selectedModel === 'executive' ? buildExecutiveReportHtml(formData()) : buildStandardReportHtml(formData());
-    content.classList.add('pdf-capturing');
-    await waitForReportAssets(content);
-    const filenameBase = (state.reportCode || 'Relatorio') + '_' + String(formData().obra || 'Inspecao').replace(/[^a-zA-Z0-9_\- ]/g, '').replace(/\s+/g, '_').slice(0, 40);
-    const suffix = selectedModel === 'executive' ? '_EXECUTIVO' : '_COMPLETO';
-    const filename = (filenameBase + suffix + '.pdf').replace(/_+/g, '_');
-    const renderPromise = window.html2pdf().set({
-      margin: [8, 8, 10, 8],
-      filename,
-      image: { type: 'jpeg', quality: 0.85 },
-      html2canvas: { scale: 1.8, useCORS: true, backgroundColor: '#ffffff', scrollX: 0, scrollY: 0 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    });
-    let timeoutId;
-    const blob = await Promise.race([
-      renderPromise,
-      new Promise((_, reject) => {
-        timeoutId = setTimeout(() => reject(new Error('A geração do PDF excedeu 120 segundos. Reduza a quantidade de fotos ou o tamanho das imagens.')), 120000);
-      })
-    ]);
-    if (timeoutId) clearTimeout(timeoutId);
-    if (!blob || blob.type !== 'application/pdf' || blob.size < 1000) throw new Error('O PDF gerado está vazio ou inválido.');
-    return await saveReportPdf(id, blob, filename, selectedModel);
-  } finally {
-    content.classList.remove('pdf-capturing');
-    content.innerHTML = previous;
-    delete window.__a360PdfModel;
-  }
-}
-
-
-
-
 /* Gerador versionado explícito: evita colisão com declarações legadas homônimas. */
 async 
+async function generateAndArchivePdf(id, model = "complete") { return generateAndArchivePdfVersion(id, model); }
+
 async function pdfImageData(src) {
   if (!src) return null;
   if (/^data:image\//i.test(src)) return src;
