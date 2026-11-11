@@ -112,7 +112,7 @@ test("código de identificação aparece no cabeçalho dos dois modelos de relat
 
 test("planos de ação são persistidos durante o preenchimento e vinculados ao histórico",()=>{assert.match(app,/function persistActionPlan/);assert.match(app,/addEventListener\("input"/);assert.match(app,/actionPlans:JSON\.parse\(JSON\.stringify\(state\.actionPlans/);assert.match(app,/ratings:\{\.\.\.state\.ratings\}/);});
 test("histórico de inspeções é uma tela separada do dashboard",()=>{assert.match(html,/id="historyView"/);assert.match(html,/id="historyList"/);assert.doesNotMatch(html,/id="completedInspections"/);assert.match(app,/function renderHistoryList/);assert.match(app,/data-history-open/);assert.doesNotMatch(html,/id="actionPlanRegister"/);});
-test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,model\)/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,alternateModel\)/);assert.match(app,/const alternateModel=model==="executive"\?"complete":"executive"/);assert.match(app,/PDFs Completo e Executivo arquivados/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id,blob,filename,window\.__a360PdfModel\|\|"complete"\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
+test("finalização permite escolher PDF Executivo ou Completo e arquiva o modelo selecionado",()=>{assert.match(html,/id="pdfModelChoice"/);assert.match(html,/PDF Executivo/);assert.match(html,/PDF Completo/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,model\)/);assert.match(app,/await generateAndArchivePdfVersion\(state\.inspectionId,alternateModel\)/);assert.match(app,/const alternateModel=model==="executive"\?"complete":"executive"/);assert.match(app,/PDFs Completo e Executivo arquivados/);assert.match(app,/saveCurrentDraft\("finalizado",finalizedAt\)/);assert.match(app,/updateHistoryStatus\(state\.inspectionId,"finalizado",finalizedAt\)/);assert.match(app,/saveReportPdf\(id, blob, filename, selectedModel\)/);assert.match(app,/function buildExecutiveReportHtml/);assert.doesNotMatch(app,/Preparando impressão/);});
 
 
 test("o aplicativo carrega jsPDF local e gera PDF nativo em Blob para arquivamento",()=>{assert.match(html,/jspdf\\.umd\\.min\\.js/);assert.match(app,/window\\.jspdf && window\\.jspdf\\.jsPDF/);assert.match(app,/doc\\.output\\("blob"\\)/);assert.match(app,/saveReportPdf\\(id, blob, filename, selectedModel\\)/);assert.match(app,/indexedDB\\.open\\(PHOTO_DB,3\\)/);assert.doesNotMatch(app,/html2pdf|html2canvas/);});
@@ -133,12 +133,12 @@ test("histórico e índice de rascunhos não descartam silenciosamente registros
 test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
  const workflow=fs.readFileSync(".github/workflows/deploy-pages.yml","utf8");
  assert.match(workflow,/build:\s*\n\s+needs: validate/);
- assert.match(workflow,/html2pdf\.bundle\.min\.js/);
+ assert.match(workflow,/jspdf\.umd\.min\.js/);
 });
 
 
 test("todos os módulos reexibem o botão Finalizar e gerar PDF ao abrir a prévia",()=>{assert.match(html,/id="reportFinalize">Finalizar e gerar PDF<\/button>/);assert.match(app,/finalizeButton\.hidden=false;finalizeButton\.style\.display="inline-flex";finalizeButton\.disabled=false;finalizeButton\.textContent="Finalizar e gerar PDF"/);assert.match(css,/#reportFinalize\{display:inline-flex!important/);});
-test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/A geração do PDF excedeu 120 segundos/);});
+test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/generateAndArchivePdfVersion/);});
 test("PDF nativo usa página A4 e gravação IndexedDB trata abortos",()=>{assert.match(app,/format: "a4"/);assert.match(app,/page: \\{ width: 210, height: 297/);assert.match(app,/page\\.bottom/);assert.match(app,/tx\\.onabort=\\(\\)=>finish/);});
 test("PDF completo gera texto vetorial e posiciona evidências abaixo de cada critério",()=>{assert.match(app,/doc\\.splitTextToSize/);assert.match(app,/async function addPhotos/);assert.match(app,/await addPhotos\\(state\\.files\\[index\\] \\|\\| \\[\\], "Foto"\\)/);assert.match(app,/doc\\.addImage/);});
 
@@ -157,9 +157,9 @@ test("PDF Executivo possui resumo, planos de ação e galeria consolidada",()=>{
  assert.match(app,/Resumo Executivo/);assert.match(app,/Plano de Ação/);assert.match(app,/Galeria de Evidências/);
  assert.match(app,/exec-gallery/);assert.match(app,/exec-page/);
 });
-test("PDF Completo limita evidências a duas imagens por linha e pagina cabeçalho/rodapé",()=>{
- assert.match(app,/width:calc\(50% - 6px\)/);assert.match(app,/Página "\+page\+" de "\+total/);
- assert.match(app,/pdf\.internal\.getNumberOfPages\(\)/);
+test("PDF nativo inclui cabeçalho e rodapé numerado em todas as páginas",()=>{
+ assert.match(app,/function drawHeader/);assert.match(app,/function drawFooters/);
+ assert.match(app,/Página " \+ p \+ " de " \+ total/);assert.match(app,/doc\.getNumberOfPages\(\)/);
 });
 test("navegação para histórico ou dashboard preserva rascunho em andamento",()=>{
  assert.match(app,/salvar o rascunho antes de abrir o histórico/);
