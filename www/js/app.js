@@ -709,7 +709,7 @@ async function generateAndArchivePdfVersion(id, model = 'complete') {
       // PNG sem perdas e captura em resolução próxima de 300 dpi para preservar textos pequenos.
       image: { type: 'png' },
       html2canvas: {
-        scale: 3, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
+        scale: 2.5, useCORS: true, allowTaint: false, backgroundColor: '#ffffff',
         scrollX: 0, scrollY: 0, logging: false, windowWidth: 1200,
         onclone: clonedDoc => {
           const clonedContent = clonedDoc.getElementById('reportContent');
@@ -738,7 +738,7 @@ async function generateAndArchivePdfVersion(id, model = 'complete') {
         }
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true, precision: 16 },
-      pagebreak: { mode: ['css', 'legacy'], avoid: ['tr', 'figure', '.pdf-photo', '.exec-photo', '.exec-plan'] }
+      pagebreak: { mode: ['css'], avoid: ['tr', 'figure', '.pdf-photo', '.exec-photo', '.exec-plan'] }
     }).from(content).toPdf().get('pdf').then(pdf => {
       if (selectedModel === 'complete') {
         const total = pdf.internal.getNumberOfPages(), width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
