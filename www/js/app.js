@@ -737,8 +737,8 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
     if (isMoradia) {
       ensure(12);
       wrapped("Quantidade de quartos: " + (state.roomCount || 1), usable, 8, "bold");
-      if (state.gps) wrapped("Localização registrada: " + state.gps.latitude + ", " + state.gps.longitude + " · Precisão aproximada: " + Math.round(state.gps.accuracy || 0) + " m", usable, 7, "normal", colors.muted);
     }
+    if (state.gps) wrapped("Localização registrada: " + state.gps.latitude + ", " + state.gps.longitude + " · Precisão aproximada: " + Math.round(state.gps.accuracy || 0) + " m", usable, 7, "normal", colors.muted);
   }
   function summary() {
     section("SÍNTESE DOS RESULTADOS");
@@ -809,7 +809,7 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
     if (plan.validatedAt) wrapped("Data da validação: " + new Date(plan.validatedAt).toLocaleString("pt-BR"), usable - 4, 6.8, "normal", colors.muted);
     (plan.history || []).forEach(h => {
       ensure(9);
-      wrapped("Histórico · " + new Date(h.at).toLocaleString("pt-BR") + " · " + h.field + ": " + (h.from || "—") + " → " + (h.to || "—"), usable - 4, 6.5, "normal", colors.muted);
+      wrapped("Histórico · " + new Date(h.at).toLocaleString("pt-BR") + " · " + h.field + ": " + (h.from || "—") + " para " + (h.to || "—"), usable - 4, 6.5, "normal", colors.muted);
     });
     y += 3;
   }
@@ -879,9 +879,6 @@ async function generateAndArchivePdfVersion(id, model = "complete") {
       const plans = sector.items.map((item, index) => ({ item, index, plan: state.actionPlans[index] })).filter(x => x.plan && ["PI", "NI"].includes(state.ratings[x.index]));
       if (!plans.length) wrapped("Nenhum plano de ação vinculado a critérios PI ou NI.", usable, 8);
       for (const entry of plans) actionPlan(entry.index, entry.item, entry.plan);
-    } else {
-      section("CONSIDERAÇÕES DA VISTORIA");
-      wrapped(form.consideracoes || "Não informado.", usable, 8);
     }
     addGeneralNotes();
   }
