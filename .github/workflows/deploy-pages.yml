@@ -36,6 +36,8 @@ jobs:
       - name: Verificar JavaScript e executar testes
         run: |
           node --check www/js/app.js
+          node --check www/js/storage.js
+          node --check www/js/photos.js
           node --check www/js/score.js
           node --check www/sw.js
           npm test

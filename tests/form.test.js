@@ -185,7 +185,7 @@ test("clique fora da imagem encerra o visualizador fotográfico",()=>{
 });
 
 test("persistência e fotos estão isoladas em módulos carregados antes do orquestrador",()=>{
- assert.match(html,/js\\/storage\\.js[\\s\\S]*js\\/photos\\.js[\\s\\S]*js\\/app\\.js/);
+ assert.match(html,/js\/storage\.js[\s\S]*js\/photos\.js[\s\S]*js\/app\.js/);
  assert.match(storage,/function openPhotoDB/);
  assert.match(storage,/function saveCurrentDraft/);
  assert.match(storage,/function saveReportPdf/);
