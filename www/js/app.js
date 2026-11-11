@@ -577,7 +577,6 @@ function buildExecutiveReportHtml(data) {
 }
 
 /* Gerador versionado explícito: evita colisão com declarações legadas homônimas. */
-async 
 async function generateAndArchivePdf(id, model = "complete") { return generateAndArchivePdfVersion(id, model); }
 
 async function pdfImageData(src) {
