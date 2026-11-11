@@ -748,19 +748,3 @@ async function generateAndArchivePdf(id, model = 'complete') {
     content.innerHTML = previous;
   }
 }
-
-const legacyRenderHome = renderHome;
-renderHome = function() { const history = $('#historyView'); if (history) history.classList.add('hidden'); $('#homeView')?.classList.remove('hidden'); $('#inspectionView')?.classList.add('hidden'); $('#navDashboard')?.classList.remove('active'); $('#navHistory')?.classList.remove('active'); };
-const legacyOpenSector = openSector;
-openSector = function(id) { $('#historyView')?.classList.add('hidden'); $('#homeView')?.classList.add('hidden'); $('#inspectionView')?.classList.remove('hidden'); $('#navDashboard')?.classList.remove('active'); $('#navHistory')?.classList.remove('active'); return legacyOpenSector(id); };
-const legacyRenderCompletedInspections = renderCompletedInspections;
-renderCompletedInspections = function() { renderHistoryList(); };
-function showHistoryView() { if (!$('#inspectionView')?.classList.contains('hidden') && state.sector && !saveCurrentDraft('rascunho')) { alert('Não foi possível salvar o rascunho antes de abrir o histórico.'); return; } $('#historyView')?.classList.remove('hidden'); $('#homeView')?.classList.add('hidden'); $('#inspectionView')?.classList.add('hidden'); $('#navHistory')?.classList.add('active'); $('#navDashboard')?.classList.remove('active'); renderHistoryList(); }
-$('#navDashboard')?.addEventListener('click', () => { if (!$('#inspectionView')?.classList.contains('hidden') && state.sector && !saveCurrentDraft('rascunho')) { alert('Não foi possível salvar o rascunho antes de abrir o dashboard.'); return; } renderHome(); $('#navDashboard')?.classList.add('active'); $('#navHistory')?.classList.remove('active'); });
-$('#navHistory')?.addEventListener('click', showHistoryView);
-$('#historyBack')?.addEventListener('click', renderHome);
-$('#historyModule')?.addEventListener('change', renderHistoryList);
-$('#historySearch')?.addEventListener('input', renderHistoryList);
-$('#historyDetailClose')?.addEventListener('click', () => $('#historyDetailDialog')?.close());
-$('#historyDetailDialog')?.addEventListener('click', e => { if (e.target === $('#historyDetailDialog')) $('#historyDetailDialog').close(); });
-renderHistoryList();
