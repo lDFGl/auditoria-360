@@ -67,7 +67,7 @@ test("evidências oferecem seleção de arquivo e captura direta pela câmera",(
  assert.equal((app.match(/data-photo-action="camera"/g)||[]).length,2);
  assert.equal((app.split('data-field="foto-camera" type="file" accept="image/*" multiple capture="environment" hidden').length-1),2);
  assert.match(photos,/card\.querySelectorAll\("\[data-photo-action\]"\)/);
- assert.match(app,/input\.click\(\)/);
+ assert.match(photos,/input\.click\(\)/);
  assert.match(app,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
  assert.match(css,/\.photo-controls\{display:grid;grid-template-columns:1fr 1fr/);
 });
@@ -107,7 +107,7 @@ test("fase 3 prepara paginação e rodapé de impressão",()=>{assert.match(app,
 test("fase 3 mantém aviso sobre limites do hash e responsabilidade técnica",()=>{assert.match(app,/SHA-256/);assert.match(app,/A análise, classificação, validação das evidências e aprovação permanecem sob responsabilidade/);});
 
 
-test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(app,/reportCode:state\.reportCode/);});
+test("código sequencial do relatório por módulo e ano é persistente",()=>{assert.match(app,/function reportCodeForInspection/);assert.match(app,/auditoria:"AI"/);assert.match(app,/engenharia:"ENG"/);assert.match(app,/"fg-moradia":"FG"/);assert.match(app,/auditoria360-sequence-/);assert.match(storage,/reportCode:state\.reportCode/);});
 test("arquivo local preserva download de PDFs anteriormente arquivados",()=>{assert.match(html,/id="finalizedReports"/);assert.match(storage,/function readReportPdf/);assert.match(app,/function renderFinalizedReports/);assert.match(app,/data-pdf-download/);assert.match(storage,/indexedDB\.open\(PHOTO_DB,3\)/);});
 test("código de identificação aparece no cabeçalho dos dois modelos de relatório",()=>{assert.match(app,/class="report-code"/);assert.match(app,/esc\(state\.reportCode\)/);});
 
@@ -141,7 +141,7 @@ test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
 
 test("todos os módulos reexibem o botão Finalizar e gerar PDF ao abrir a prévia",()=>{assert.match(html,/id="reportFinalize">Finalizar e gerar PDF<\/button>/);assert.match(app,/finalizeButton\.hidden=false;finalizeButton\.style\.display="inline-flex";finalizeButton\.disabled=false;finalizeButton\.textContent="Finalizar e gerar PDF"/);assert.match(css,/#reportFinalize\{display:inline-flex!important/);});
 test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/generateAndArchivePdfVersion/);});
-test("PDF nativo usa página A4 e gravação IndexedDB trata abortos",()=>{assert.ok(app.includes('format: "a4"'));assert.ok(app.includes("width: 210, height: 297"));assert.ok(app.includes("page.bottom"));assert.match(app,/tx\.onabort=\(\)=>finish/);});
+test("PDF nativo usa página A4 e gravação IndexedDB trata abortos",()=>{assert.ok(app.includes('format: "a4"'));assert.ok(app.includes("width: 210, height: 297"));assert.ok(app.includes("page.bottom"));assert.match(storage,/tx\.onabort=\(\)=>finish/);});
 test("PDF completo gera texto vetorial e posiciona evidências abaixo de cada critério",()=>{assert.ok(app.includes("doc.splitTextToSize"));assert.ok(app.includes("async function addPhotos"));assert.ok(app.includes('await addPhotos(state.files[index] || [], "Foto")'));assert.ok(app.includes("doc.addImage"));});
 
 test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
@@ -181,7 +181,7 @@ test("exclusão do histórico remove também chave e fotos legadas da mesma insp
  assert.match(app,/startsWith\(legacyPhotoPrefix\)/);
 });
 test("clique fora da imagem encerra o visualizador fotográfico",()=>{
- assert.match(app,/e\.target===overlay\|\|\(!e\.target\.closest\("\.photo-viewer-image,\.photo-viewer-nav,\.photo-viewer-close"\)\)/);
+ assert.match(photos,/e\.target===overlay\|\|\(!e\.target\.closest\("\.photo-viewer-image,\.photo-viewer-nav,\.photo-viewer-close"\)\)/);
 });
 
 test("persistência e fotos estão isoladas em módulos carregados antes do orquestrador",()=>{
