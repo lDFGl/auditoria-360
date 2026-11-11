@@ -140,6 +140,7 @@ test("deploy executa validação e exige sucesso antes de montar artefato",()=>{
 test("todos os módulos reexibem o botão Finalizar e gerar PDF ao abrir a prévia",()=>{assert.match(html,/id="reportFinalize">Finalizar e gerar PDF<\/button>/);assert.match(app,/finalizeButton\.hidden=false;finalizeButton\.style\.display="inline-flex";finalizeButton\.disabled=false;finalizeButton\.textContent="Finalizar e gerar PDF"/);assert.match(css,/#reportFinalize\{display:inline-flex!important/);});
 test("finalização sempre restaura o botão quando a geração ou o arquivamento falha",()=>{assert.match(app,/finally\{if\(!finalized\)\{button\.disabled=false;button\.textContent="Finalizar e gerar PDF";button\.removeAttribute\("aria-busy"\);\}\}/);assert.match(app,/A geração do PDF excedeu 120 segundos/);});
 test("PDF usa largura A4 controlada e gravação IndexedDB trata abortos",()=>{assert.match(app,/clonedContent\.style\.width="725px"/);assert.match(app,/tx\.onabort=\(\)=>finish/);});
+test("PDF automático usa captura PNG de alta resolução e paginação A4 sem cortes",()=>{assert.match(app,/image: \{ type: 'png' \}/);assert.match(app,/scale: 2\.5, useCORS: true/);assert.match(app,/format: 'a4'/);assert.match(app,/break-inside: avoid/);assert.match(app,/pagebreak: \{ mode: \['css'\], avoid:/);});
 
 test("lightbox oferece ampliação, navegação, fechamento por ESC e clique no overlay",()=>{
  assert.match(app,/function openPhotoViewer/);assert.match(app,/function closePhotoViewer/);assert.match(app,/function showNextPhoto/);assert.match(app,/function showPreviousPhoto/);
