@@ -33,6 +33,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
 
   async function newPage() {
     const page = await browser.newPage();
+    page.setDefaultTimeout(10000);
     const pageErrors = [];
     page.on("pageerror", error => pageErrors.push(error.stack || error.message));
     page.on("dialog", dialog => dialog.accept());
@@ -40,9 +41,10 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
     await page.evaluate(() => localStorage.clear());
     return { page, pageErrors };
   }
-  async function openModule(page, id) {
+  async function openModule(page, id, pageErrors = []) {
     await page.locator(`[data-sector="${id}"]`).click();
-    await page.locator("#inspectionView").waitFor({ state: "visible" });
+    try { await page.locator("#inspectionView").waitFor({ state: "visible" }); }
+    catch (error) { throw new Error("Módulo " + id + " não abriu. Erros de página: " + pageErrors.join(" | ") + ". " + error.message); }
     await page.locator("#sectorTitle").waitFor();
   }
   async function fillIdentification(page, moradia = false) {
@@ -72,7 +74,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
     for (const id of scoredModules) {
       await t.test(`Módulo ${id}: abertura, 20 critérios, cinco classificações, nota e plano de ação`, async () => {
         const { page, pageErrors } = await newPage();
-        await openModule(page, id);
+        await openModule(page, id, pageErrors);
         await fillIdentification(page);
         assert.equal(await page.locator("[data-q]").count(), 20);
         const ratings = ["IM", "OM", "PI", "NI", "NA"];
@@ -106,7 +108,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
 
     await t.test("FG Moradia: vistoria qualitativa, colaborador obrigatório, status e quantidade de quartos", async () => {
       const { page, pageErrors } = await newPage();
-      await openModule(page, "fg-moradia");
+      await openModule(page, "fg-moradia", pageErrors);
       await fillIdentification(page, true);
       assert.equal(await page.locator("[data-q]").count(), 38);
       assert.equal(await page.locator("#scoreValue").evaluate(el => el.closest(".score-card").classList.contains("hidden")), true);
@@ -125,7 +127,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
 
     await t.test("Rascunho: salvar, sair, localizar e recuperar dados e classificações", async () => {
       const { page, pageErrors } = await newPage();
-      await openModule(page, "engenharia");
+      await openModule(page, "engenharia", pageErrors);
       await fillIdentification(page);
       await page.locator('[data-q="0"] [data-rate="NI"]').click();
       await page.locator('[data-q="0"] [data-field="obs"]').fill("Fissura identificada para acompanhamento.");
@@ -144,7 +146,7 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
 
     await t.test("Fluxo completo: validar formulário, gerar prévia, registrar histórico e finalizar os dois PDFs", async () => {
       const { page, pageErrors } = await newPage();
-      await openModule(page, "qualidade");
+      await openModule(page, "qualidade", pageErrors);
       await fillIdentification(page);
       for (let i = 0; i < 20; i++) {
         await page.locator(`[data-q="${i}"] [data-rate="${i % 5 === 0 ? "NI" : "IM"}"]`).click();
