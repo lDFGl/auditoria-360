@@ -157,7 +157,7 @@ test("PDF Executivo possui resumo, planos de ação e galeria consolidada",()=>{
  assert.match(app,/exec-gallery/);assert.match(app,/exec-page/);
 });
 test("PDF Completo limita evidências a duas imagens por linha e pagina cabeçalho/rodapé",()=>{
- assert.match(app,/width:calc\(50% - 6px\)/);assert.match(app,/Página \+page\+" de "\+total/);
+ assert.match(app,/width:calc\(50% - 6px\)/);assert.match(app,/Página "\+page\+" de "\+total/);
  assert.match(app,/pdf\.internal\.getNumberOfPages\(\)/);
 });
 test("navegação para histórico ou dashboard preserva rascunho em andamento",()=>{
