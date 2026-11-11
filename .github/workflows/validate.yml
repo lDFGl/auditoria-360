@@ -31,7 +31,7 @@ jobs:
           test -s www/index.html
           test -s www/css/styles.css
           test -s www/js/app.js
-          test -s www/js/vendor/html2pdf.bundle.min.js
+          test -s www/js/vendor/jspdf.umd.min.js
           test -s www/js/score.js
           test -s www/manifest.webmanifest
           test -s www/fonts/dm-sans-variable.woff2
