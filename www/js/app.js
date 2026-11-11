@@ -696,7 +696,7 @@ async function generateAndArchivePdf(id, model = 'complete') {
     content.innerHTML = selectedModel === 'executive' ? buildExecutiveReportHtml(formData()) : buildStandardReportHtml(formData());
     content.classList.add('pdf-capturing');
     await waitForReportAssets(content);
-    const safeWork = String(formData().obra || 'Inspecao').replace(/[^a-zA-Z0-9_\\- ]/g, '').trim().replace(/\\s+/g, '_').slice(0, 40) || 'Inspecao';
+    const safeWork = String(formData().obra || 'Inspecao').replace(/[^a-zA-Z0-9_ -]/g, '').trim().replace(/\s+/g, '_').slice(0, 40) || 'Inspecao';
     const suffix = selectedModel === 'executive' ? '_EXECUTIVO' : '_COMPLETO';
     const filename = ((state.reportCode || 'Relatorio') + '_' + safeWork + suffix + '.pdf').replace(/_+/g, '_');
 
