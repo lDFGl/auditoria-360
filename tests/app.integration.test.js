@@ -48,12 +48,24 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
     } catch (error) { throw new Error("Módulo " + id + " não abriu. Erros de página: " + pageErrors.join(" | ") + ". " + error.message); }
   }
   async function fillIdentification(page, moradia = false) {
-    await page.locator('[name="obra"]').fill("Obra de Teste Funcional");
-    await page.locator('[name="empresa"]').fill("FG Empreendimentos");
-    await page.locator('[name="data"]').fill("2026-11-11");
-    await page.locator('[name="responsavel"]').fill("Auditor de Teste");
-    await page.locator('[name="local"]').fill("Torre A - Pavimento 10");
-    if (moradia) await page.locator('[name="colaborador"]').fill("Colaborador de Teste");
+    const fields = await page.evaluate(isMoradia => {
+      const values = { obra: "Obra de Teste Funcional", empresa: "FG Empreendimentos", data: "2026-11-11", responsavel: "Auditor de Teste", local: "Torre A - Pavimento 10" };
+      if (isMoradia) values.colaborador = "Colaborador de Teste";
+      const result = {};
+      for (const [name, value] of Object.entries(values)) {
+        const field = document.querySelector('[name="' + name + '"]');
+        if (!field) throw new Error("Campo ausente: " + name);
+        field.value = value;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+        field.dispatchEvent(new Event("change", { bubbles: true }));
+        result[name] = { value: field.value, visible: field.getClientRects().length > 0, disabled: field.disabled };
+      }
+      return result;
+    }, moradia);
+    for (const [name, field] of Object.entries(fields)) {
+      assert.equal(field.visible, true, "Campo " + name + " deve estar visível no módulo");
+      assert.equal(field.disabled, false, "Campo " + name + " deve estar habilitado");
+    }
   }
 
   try {
