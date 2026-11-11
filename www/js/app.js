@@ -602,7 +602,7 @@ function buildExecutiveReportHtml(data) {
   return '<!doctype html><html lang="pt-BR"><head><meta charset="utf-8"><title>Resumo executivo — Auditoria 360</title><style>' +
     '@page { size: A4 portrait; margin: 12mm; }' +
     'html, body { margin: 0; padding: 0; background: #fff; color: #1d2f35; font-family: Arial, sans-serif; }' +
-    '.exec-page { width: 100%; min-height: 0; height: auto; box-sizing: border-box; page-break-after: always; break-after: page; padding: 0; margin: 0; }' +
+    '.exec-page { width: 100%; min-height: 0; height: auto; box-sizing: border-box; page-break-after: always; padding: 0; margin: 0; }' +
     '.exec-page:last-child { page-break-after: auto; break-after: auto; }' +
     '.exec-header { display: flex; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 2px solid #dfe7ea; padding-bottom: 10px; margin-bottom: 14px; }' +
     '.exec-brand { display: flex; align-items: center; gap: 12px; }' +
@@ -719,7 +719,7 @@ async function generateAndArchivePdf(id, model = 'complete') {
         }
       },
       jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait', compress: true },
-      pagebreak: { mode: ['css', 'legacy'] }
+      pagebreak: { mode: ['css'] }
     }).from(content).toPdf().get('pdf').then(pdf => {
       if (selectedModel === 'complete') {
         const total = pdf.internal.getNumberOfPages(), width = pdf.internal.pageSize.getWidth(), height = pdf.internal.pageSize.getHeight();
