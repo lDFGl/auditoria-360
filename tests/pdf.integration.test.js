@@ -8,6 +8,35 @@ test("PDFs nativos: integração em navegador, extração de texto e cenários d
  async function generate(sectorId,model,options={}){await page.goto(`http://127.0.0.1:${address.port}/`);return page.evaluate(async({sectorId,model,options})=>{localStorage.clear();await openSector(sectorId);const values={obra:"Empreendimento de Teste",empresa:"FG Empreendimentos",data:"11/11/2026",responsavel:"Auditor de Teste",colaborador:"Colaborador de Teste",local:"Torre A · Pavimento 10",consideracoes:"Considerações gerais: inspeção de teste com acentuação, ç, ã, é e caracteres especiais."};for(const [name,value] of Object.entries(values)){const field=document.querySelector(`[name="${name}"]`);if(field)field.value=value;}state.inspectionId="PDF-TEST-"+sectorId+"-"+model+"-"+Date.now();state.reportCode="AI-TEST-"+sectorId.toUpperCase();state.reportIntegrity=null;state.actionPlans={};state.files={};if(state.sector.mode==="moradia"){state.roomCount=1;document.querySelectorAll("[data-q]").forEach((card,i)=>{const status=card.querySelector('[data-field="status"]');if(status)status.value=i%3===0?"Ajuste necessário":i%3===1?"Conforme":"Não aplicável";const obs=card.querySelector('[data-field="obs"]');if(obs)obs.value=i===0?"Ajuste necessário: revisar vedação e acabamento.":"";});}else{const ratings=["IM","OM","PI","NI","NA"];state.ratings=Object.fromEntries(state.sector.items.map((item,i)=>[i,ratings[i%ratings.length]]));document.querySelectorAll("[data-q]").forEach((card,i)=>{const obs=card.querySelector('[data-field="obs"]');if(obs)obs.value=options.longReport?("Observação técnica com acentuação: execução, inspeção, evidência e conformidade. ").repeat(8):"Observação de teste: condição verificada e registrada.";});state.actionPlans={2:{criticality:"Alta",responsible:"Engenharia",deadline:"20/11/2026",action:"Corrigir e reinspecionar",evidence:"Registro fotográfico",status:"Em andamento",auditorNote:"Aguardando validação"},3:{criticality:"Crítica",responsible:"Obra",deadline:"18/11/2026",action:"Tratar não conformidade",evidence:"Laudo e fotos",status:"Aguardando validação do auditor",auditorNote:"Validar após correção"}};}const canvas=document.createElement("canvas");canvas.width=16;canvas.height=16;const ctx=canvas.getContext("2d");ctx.fillStyle="#135c6c";ctx.fillRect(0,0,16,16);const validImage=canvas.toDataURL("image/png");if(options.photos){state.files[0]=Array.from({length:options.photos},(_,i)=>({name:"evidencia-"+(i+1)+".png",dataUrl:validImage}));state.files[1]=[{name:"foto-corrompida.png",dataUrl:"data:image/png;base64,conteudo-invalido"}];}else if(options.onePhoto){state.files[0]=[{name:"evidencia-validada.png",dataUrl:validImage}];}if(options.longReport&&state.sector.mode!=="moradia")state.sector.items[19][0]="TÍTULO EXCLUSIVO DO CRITÉRIO FINAL — "+("descrição extensa para testar a reserva integral do título e sua paginação. ").repeat(7);await generateAndArchivePdfVersion(state.inspectionId,model);const archived=await readReportPdf(state.inspectionId,model);if(!archived||!archived.blob)throw new Error("PDF não foi arquivado no IndexedDB.");return{bytes:Array.from(new Uint8Array(await archived.blob.arrayBuffer())),filename:archived.name,count:state.sector.items.length};},{sectorId,model,options});}
  try{
   await t.test("cinco módulos pontuados: nota, contagem, acentuação e A4 nos dois modelos",async()=>{for(const id of ["auditoria","engenharia","qualidade","almoxarifado","sesmt"]){const c=await generate(id,"complete"),e=await generate(id,"executive"),a=await extractPdf(c.bytes),b=await extractPdf(e.bytes);assert.equal(c.count,20,id);assert.equal(e.count,c.count);for(const r of [a,b]){assert.match(r.text,/Inspeção|INSPEÇÃO/);assert.match(r.text,/Conformidade: 66,25%/);assert.match(r.text,/Critérios avaliados: 16\/20/);assert.match(r.text,/Considerações gerais/);assert.ok(r.dimensions.every(d=>Math.abs(d.width-595.28)<1&&Math.abs(d.height-841.89)<1),"A4 "+id);}assert.match(b.text,/PANORAMA DAS AÇÕES PRIORITÁRIAS/);}});
+  await t.test("fotos: upload, IndexedDB, ampliação, navegação e fechamento do lightbox", async () => {
+    await page.goto(`http://127.0.0.1:${address.port}/`);
+    const inspectionId = await page.evaluate(async () => {
+      localStorage.clear();
+      await openSector("engenharia");
+      return state.inspectionId;
+    });
+    const svg = Buffer.from('<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"><rect width="16" height="16" fill="#135c6c"/></svg>');
+    await page.locator('[data-q="0"] [data-field="foto-file"]').setInputFiles([
+      { name: "evidencia-1.svg", mimeType: "image/svg+xml", buffer: svg },
+      { name: "evidencia-2.svg", mimeType: "image/svg+xml", buffer: svg }
+    ]);
+    const thumbnails = page.locator('[data-q="0"] .photo-thumb img');
+    await thumbnails.nth(1).waitFor({ state: "visible" });
+    assert.equal(await thumbnails.count(), 2);
+    await thumbnails.nth(0).click();
+    assert.equal(await page.locator(".photo-viewer-overlay").count(), 1);
+    assert.equal(await page.locator(".photo-viewer-counter").textContent(), "1 de 2");
+    await page.locator(".photo-viewer-next").click();
+    assert.equal(await page.locator(".photo-viewer-counter").textContent(), "2 de 2");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.locator(".photo-viewer-overlay").count(), 0);
+    const persisted = await page.evaluate(async id => {
+      const photos = await readInspectionPhotos(id);
+      return photos[0]?.length || 0;
+    }, inspectionId);
+    assert.equal(persisted, 2, "as duas fotos devem permanecer no IndexedDB após o upload");
+  });
+
   await t.test("FG Moradia: PDF Executivo qualitativo, sem PI/NI ou nota",async()=>{const c=await generate("fg-moradia","complete",{onePhoto:true}),e=await generate("fg-moradia","executive",{onePhoto:true}),a=await extractPdf(c.bytes),b=await extractPdf(e.bytes);assert.match(a.text,/FG Moradia|FG MORADIA|CHECKLIST DE ENTREGA/);assert.match(b.text,/PENDÊNCIAS DA VISTORIA/);assert.match(b.text,/Ajuste necessário/);assert.doesNotMatch(b.text,/PANORAMA DAS AÇÕES PRIORITÁRIAS|PI\/NI|Conformidade:/);assert.doesNotMatch(b.text,/Não há critérios PI\/NI/);});
   await t.test("relatório extenso, muitas fotos, imagem ausente/corrompida e paginação do último critério",async()=>{const x=await generate("engenharia","complete",{longReport:true,photos:36}),r=await extractPdf(x.bytes);assert.ok(r.pages.length>2,"relatório extenso deve ocupar mais de duas páginas");assert.match(r.text,/TÍTULO EXCLUSIVO DO CRITÉRIO FINAL/);assert.match(r.text,/Imagem indisponível/);assert.match(r.text,/evidencia-36\.png/);assert.match(r.text,/Considerações gerais: inspeção de teste com acentuação/);assert.ok(r.dimensions.every(d=>Math.abs(d.width-595.28)<1&&Math.abs(d.height-841.89)<1));const i=r.pages.findIndex(p=>p.includes("TÍTULO EXCLUSIVO DO CRITÉRIO FINAL"));assert.notEqual(i,-1);assert.ok(r.pages[i].includes("20"),"marcador e título do critério final na mesma página");});
  }finally{await browser.close();await new Promise(resolve=>server.close(resolve));}

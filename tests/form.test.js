@@ -68,7 +68,7 @@ test("evidências oferecem seleção de arquivo e captura direta pela câmera",(
  assert.equal((app.split('data-field="foto-camera" type="file" accept="image/*" multiple capture="environment" hidden').length-1),2);
  assert.match(photos,/card\.querySelectorAll\("\[data-photo-action\]"\)/);
  assert.match(photos,/input\.click\(\)/);
- assert.match(app,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
+ assert.match(photos,/inputs\.forEach\(input=>input\.addEventListener\("change"/);
  assert.match(css,/\.photo-controls\{display:grid;grid-template-columns:1fr 1fr/);
 });
 
