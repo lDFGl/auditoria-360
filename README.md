@@ -95,13 +95,14 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - O histórico é local ao navegador e dispositivo; não representa consolidação multiusuário.
 
 
-## Fase 3 — documentação e apresentação dos relatórios
-- Código legível do relatório no padrão \`A360-[MÓDULO]-[AAAAMMDD]-[SUFIXO]\`, vinculado ao identificador individual da inspeção.
-- Código do relatório incluído nos metadados, no rodapé de impressão e no conteúdo apresentado no relatório.
-- Índice de evidências fotográficas com código, critério/ambiente e nome do arquivo, mantendo as imagens junto aos respectivos critérios.
-- Anexo consolidado das referências técnicas e documentais citadas no checklist, sem declarar validação automática de vigência ou aplicabilidade.
-- Paginação e rodapé próprios para impressão A4, com repetição do cabeçalho das tabelas e proteção contra quebra de linhas e fotografias.
-- Aviso de integridade esclarece que o hash não substitui assinatura digital nem registro externo confiável.
+## PDFs nativos e apresentação dos relatórios
+- O código individual da inspeção é apresentado nos metadados e no cabeçalho/rodapé do PDF.
+- O **PDF Completo** apresenta identificação, indicadores, critérios, classificações, referências, observações, planos de ação e considerações gerais.
+- As evidências fotográficas são posicionadas junto ao respectivo critério, com legenda e preservação da proporção da imagem.
+- O **PDF Executivo** consolida os resultados e as ações prioritárias PI/NI dos módulos pontuados. No FG Moradia, apresenta as pendências qualitativas, sem nota ou classificação PI/NI.
+- Os documentos são gerados em A4, orientação retrato, com texto vetorial e paginação nativa. A reserva de espaço evita separar o marcador numerado do título do critério.
+- A geração utiliza jsPDF 2.5.2 distribuído localmente; os PDFs ficam arquivados no IndexedDB do navegador e podem ser gerados sem CDN.
+- O aviso de integridade esclarece que o hash SHA-256 não substitui assinatura digital nem registro externo confiável.
 - Versão do aplicativo: **2.6.0**.
 
 As melhorias de relatório não alteram a metodologia de pontuação, a cobertura, os planos de ação, a criticidade ou os registros históricos. O código legível organiza a identificação, mas permanece local e não representa protocolo central corporativo.
