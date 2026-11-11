@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
@@ -52,7 +52,7 @@ jobs:
           node -e 'JSON.parse(require("fs").readFileSync("www/manifest.webmanifest","utf8"))'
   build:
     needs: validate
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Baixar repositório
         uses: actions/checkout@v4
@@ -85,7 +85,7 @@ jobs:
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     needs: build
     steps:
       - name: Publicar GitHub Pages
