@@ -81,13 +81,13 @@ As vistorias FG Moradia são contabilizadas separadamente e não entram na confo
 - O Service Worker utiliza identificador do commit no deploy e network-first para navegação, HTML, CSS e JavaScript, com fallback de cache para uso offline.
 - Os ícones vetoriais 192, 512 e maskable usam a marca FG existente sobre o fundo institucional #135c6c.
 - As famílias locais DM Sans e Manrope são servidas por um WOFF2 variável cada, acompanhadas das respectivas licenças SIL Open Font License 1.1.
-- A pontuação é centralizada em `www/js/score.js`; testes automatizados estão em `tests/score.test.js` e são executados no workflow de validação.
+- A pontuação é centralizada em `www/js/score.js`; persistência e histórico estão em `www/js/storage.js`, e tratamento/visualização de evidências em `www/js/photos.js`. Os testes estão em `tests/score.test.js`, `tests/form.test.js` e `tests/pdf.integration.test.js`.
 - Os relatórios registram timestamp ISO, versão, inspectionId e hash SHA-256 do conteúdo e das evidências fotográficas. Se Web Crypto não estiver disponível, o relatório informa a indisponibilidade do hash.
 - O hash só permite detectar alterações se o valor original for registrado em meio externo confiável (por exemplo, e-mail corporativo, sistema documental ou ata). Não é assinatura digital, não comprova autoria e não garante, isoladamente, autenticidade jurídica.
 
 
 ## Relatórios e histórico local
-- A conclusão da inspeção prepara o relatório dentro da própria aplicação. O botão **Imprimir / Salvar como PDF** aciona a impressão do navegador, sem abrir pop-up.
+- A conclusão da inspeção prepara o relatório dentro da própria aplicação. Os modelos **PDF Completo** e **PDF Executivo** são gerados nativamente em A4 com jsPDF 2.5.2, texto vetorial e arquivamento local no IndexedDB; não dependem de impressão do navegador nem de CDN.
 - A geração do relatório não exclui o rascunho nem as fotografias. O usuário pode retornar ao checklist e continuar a inspeção.
 - O painel geral consulta o histórico local em `auditoria360-inspection-history-v1`. O período dos indicadores considera a data de conclusão do registro; a data preenchida no formulário permanece como data da vistoria.
 - O histórico é local ao navegador e dispositivo; não representa consolidação multiusuário.
