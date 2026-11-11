@@ -170,3 +170,13 @@ test("histórico reconstrói os critérios do FG Moradia sem alterar a persistê
  assert.match(app,/localStorage\.removeItem\(DRAFT_PREFIX\+id\)/);
  assert.match(app,/tx\.objectStore\("reports"\)\.delete\(id\)/);
 });
+
+test("exclusão do histórico remove também chave e fotos legadas da mesma inspeção",()=>{
+ assert.match(app,/legacyKey=DRAFT_PREFIX\+record\.sector/);
+ assert.match(app,/legacy\?\.inspectionId===id/);
+ assert.match(app,/legacyPhotoPrefix=String\(record\.sector\)\+":"/);
+ assert.match(app,/startsWith\(legacyPhotoPrefix\)/);
+});
+test("clique fora da imagem encerra o visualizador fotográfico",()=>{
+ assert.match(app,/e\.target===overlay\|\|\(!e\.target\.closest\("\.photo-viewer-image,\.photo-viewer-nav,\.photo-viewer-close"\)\)/);
+});
