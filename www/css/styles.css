@@ -350,3 +350,27 @@ dialog.photo-viewer-overlay{position:fixed;inset:0;z-index:2147483000;margin:0;p
 dialog.photo-viewer-overlay::backdrop{background:transparent}
 dialog.photo-viewer-overlay[open]{display:flex}
 @media(max-width:760px){dialog.photo-viewer-overlay{padding:58px 10px 68px}}
+
+
+/* Ajustes de desempenho e acessibilidade — Lighthouse 2026-11-24 */
+@font-face{font-family:"DM Sans";src:url("../fonts/dm-sans-variable.woff2") format("woff2");font-weight:100 1000;font-display:optional}
+@font-face{font-family:"Manrope";src:url("../fonts/manrope-variable.woff2") format("woff2");font-weight:200 800;font-display:optional}
+.brand-logo{display:block;width:82px;height:40px;max-width:82px;object-fit:contain;flex:0 0 82px}
+img{height:auto}
+.legend .im,.rating button[aria-pressed=true].r-im{background:#147a3b;color:#fff}
+.legend .om,.rating button[aria-pressed=true].r-om{background:#287a24;color:#fff}
+.legend .ni,.rating button[aria-pressed=true].r-ni{background:#c62828;color:#fff}
+.legend .na,.rating button[aria-pressed=true].r-na{background:#08799f;color:#fff}
+body[data-theme="dark"] .text-button,
+body[data-theme="dark"] .sector-card .card-foot,
+body[data-theme="dark"] .sector-card .card-foot span,
+body[data-theme="dark"] #clearDashboard{color:#a8d8de}
+body[data-theme="dark"] .legend .im,
+body[data-theme="dark"] .rating button[aria-pressed=true].r-im{background:#147a3b;color:#fff}
+body[data-theme="dark"] .legend .om,
+body[data-theme="dark"] .rating button[aria-pressed=true].r-om{background:#287a24;color:#fff}
+body[data-theme="dark"] .legend .ni,
+body[data-theme="dark"] .rating button[aria-pressed=true].r-ni{background:#c62828;color:#fff}
+body[data-theme="dark"] .legend .na,
+body[data-theme="dark"] .rating button[aria-pressed=true].r-na{background:#08799f;color:#fff}
+:focus-visible{outline:3px solid #4b9eaa;outline-offset:3px}
