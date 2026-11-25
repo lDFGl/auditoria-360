@@ -131,6 +131,8 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
       await page.locator('[data-q="2"] [data-field="status"]').selectOption("Não aplicável");
       assert.match(await page.locator("#scoreCaption").textContent(), /3 de 38 itens registrados/);
       await page.locator("#roomCount").selectOption("2");
+      // A alteração limpa evidências no IndexedDB de forma assíncrona antes de redesenhar o checklist.
+      await page.waitForFunction(() => document.querySelectorAll("[data-q]").length === 43, null, { timeout: 10000 });
       assert.equal(await page.locator("[data-q]").count(), 43);
       assert.equal(await page.locator('[data-q="0"] [data-field="status"]').inputValue(), "");
       assert.equal(await page.locator('[name="colaborador"]').isDisabled(), false);
