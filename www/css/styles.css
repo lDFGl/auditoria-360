@@ -248,8 +248,8 @@ body[data-theme="dark"] .report-viewer-toolbar span{color:#c0d0d3}
 @media(max-width:520px){.theme-toggle{margin-left:8px;padding:8px 9px;font-size:10px}.topbar{gap:8px}.top-meta{display:none}}
 
 
-/* Modo claro: fundo institucional escuro, com painel gerencial branco */
-body[data-theme="light"]{--bg:#102f37;background:var(--bg);color:#e5eff1}
+/* Modo claro: fundo institucional suavizado para reduzir contraste excessivo e ofuscamento */
+body[data-theme="light"]{--bg:#24434a;background:var(--bg);color:#e5eff1}
 body[data-theme="light"] .shell{color:#e5eff1}
 body[data-theme="light"] .section-heading h2,
 body[data-theme="light"] .inspection-head h1,
