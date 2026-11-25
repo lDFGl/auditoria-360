@@ -32,7 +32,8 @@ test("Auditoria 360: testes funcionais de todos os módulos e fluxos principais"
   const browser = await chromium.launch({ headless: true });
 
   async function newPage() {
-    const page = await browser.newPage();
+    const context = await browser.newContext({ serviceWorkers: "block" });
+    const page = await context.newPage();
     page.setDefaultTimeout(10000);
     const pageErrors = [];
     page.on("pageerror", error => pageErrors.push(error.stack || error.message));
