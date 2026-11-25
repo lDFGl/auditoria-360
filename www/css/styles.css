@@ -249,7 +249,7 @@ body[data-theme="dark"] .report-viewer-toolbar span{color:#c0d0d3}
 
 
 /* Modo claro: fundo institucional suavizado para reduzir contraste excessivo e ofuscamento */
-body[data-theme="light"]{--bg:#24434a;background:var(--bg);color:#e5eff1}
+body[data-theme="light"]{--bg:#5bafc2;background:var(--bg);color:#102f37}
 body[data-theme="light"] .shell{color:#e5eff1}
 body[data-theme="light"] .section-heading h2,
 body[data-theme="light"] .inspection-head h1,
